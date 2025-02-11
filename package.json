@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "compile": "tsx run.ts"
+    "compile": "tsx run.ts",
+    "build": "tsc",
+    "start": "lite-server"
   },
   "keywords": [],
   "author": "",

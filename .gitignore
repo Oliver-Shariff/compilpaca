@@ -1,0 +1,20 @@
+# Node.js dependencies
+node_modules/
+package-lock.json
+
+# Compiled JavaScript files
+distrib/
+
+# TypeScript build artifacts
+*.tsbuildinfo
+
+# Debugging files
+*.log
+npm-debug.log*
+
+# Source maps
+*.map
+
+# OS-specific files
+.DS_Store
+Thumbs.db

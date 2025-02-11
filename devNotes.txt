@@ -1,0 +1,32 @@
+Commit 0:
+project structure intailaized
+there might be issues with where JS code generates
+how to implement dist folder?
+
+Commit 1: 
+file reader method set up and log message works properly
+
+Commit 2:
+token list created as enum in src/lexer/token.ts
+is this token list complete? 
+Do I need to add digits and charecters?
+
+Goal:
+Check for valid keywords, identifiers, symbols, digits, charecters
+
+steps
+Charecter has
+	-position (Line and number)
+	-content
+	-parents
+	-expected partner (open brace expects closed brace, quotations, etc)
+	
+Token has
+	-start position
+	-end position
+	-content
+	
+	
+We need to read charecters, sorth them into tokens, and check their validity
+
+test cases will be in local folder but can be any name or extension
