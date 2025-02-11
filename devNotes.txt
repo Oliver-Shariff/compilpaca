@@ -30,7 +30,7 @@ Token has
 We need to read charecters, sorth them into tokens, and check their validity
 
 test cases will be in local folder but can be any name or extension
-
+---------------------------------------------------------------------------------------------------------
 Feb 11
 previous work was mostly wrong but rereading the chapter and instructions I understand better
 
