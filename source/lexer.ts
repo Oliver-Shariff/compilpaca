@@ -11,7 +11,7 @@ lexer.ts should also do the following:
 
 //using RegEx instead of brute force
 //enum for each TYPE of token, not each token itself
-export enum AlpacaTokens {
+export enum tokenType {
     KEYWORD = "KEYWORD",
     ID = "ID",
     INT = "INT",
@@ -23,4 +23,13 @@ export enum AlpacaTokens {
     BOOL = "BOOL",
     EOP = "EOP",
     COMMENT = "COMMENT" // SHOULD I JUST LUMP THIS INTO WHITESPACE?
+}
+
+//token structure
+//this is going to be called by index.ts so we need to export it
+export interface Token{
+    type: tokenType;
+    value: string; // store every token as a string value (even if its a number)
+    line: number;
+    column: number;
 }
