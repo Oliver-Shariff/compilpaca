@@ -53,3 +53,8 @@ lexer.ts should also do the following:
 index.ts
 
 	create JS for index.html.
+
+
+QUESTIONS:
+
+Does the grammar allow for multi digit numbers?

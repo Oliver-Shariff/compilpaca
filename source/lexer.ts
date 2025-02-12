@@ -36,12 +36,12 @@ export interface Token{
     column: number;
 }
 
+/*
 //now for regex
 //first I have to learn regex...
 // goal: be able to define each enum (type of token) through a regex token
 
 // simple defs
-/*
 Keyword = int | string | boolean| print | while | if
 ID = (a-z) only one
 INT = (1-9)+(0-9)* no leading zeros
@@ -65,16 +65,24 @@ comment = anything inside of slash star star slash (writing it like that to avoi
 //tie each token type to it's regex definition-- for this we'll use a new ojebect which holds the tokenType and regex def
 const tokenRegex: {type: tokenType; regex: RegExp}[]=[
     {type: tokenType.KEYWORD, regex: /\b(int|string|boolean|print|while|if)\b/},
-    {type: tokenType.ID, regex: /\b[a-z]+\b/ },
-    {type: tokenType.NUMBER, regex: /\b[0-9]+\b/},
+    {type: tokenType.ID, regex: /\b[a-z]\b/ },
+    {type: tokenType.NUMBER, regex: /\b[0-9]+\b/}, //the grammar may not allow for a multi digit number
     {type: tokenType.STRING, regex: /"([^"]*)"/},
     {type: tokenType.SYMBOL, regex: /[{}()$]/},
     {type: tokenType.WHITESPACE, regex: /\s+/},
+    {type: tokenType.EQUALITY, regex: /==|!=/ }, //this needs to come before the assign token
     {type: tokenType.ASSIGN, regex: /=/ },
-    {type: tokenType.EQUALITY, regex: /==|!=/ },
     {type: tokenType.BOOL, regex:/\b(true|false)\b/ },
     {type: tokenType.EOP, regex:/\$/ }, //$ is a special char in regex so we need the escape slash
     {type: tokenType.COMMENT, regex: /\/\*[\s\S]*?\*\//}, //  * and / are special char in regex so they both need to be escaped
     {type: tokenType.OPEN, regex: /{/},
     {type: tokenType.CLOSE, regex: /}/},
 ]
+/*
+now we need to build a loop that looks through the input and:
+    tracks line and column number
+    identifies tokens
+    in an array store the type, value, line, and column of the token
+    return the array
+*/
+
