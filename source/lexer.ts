@@ -16,7 +16,7 @@ export enum tokenType {
     ID = "ID",
     INT = "INT",
     STRING = "STRING",
-    SYMBOL = "SYMBOL", // this inludes {}/*()
+    SYMBOL = "SYMBOL", // this inludes {}()
     WHITESPACE = "WHITESPACE", // SPACES AND NEWLINES
     ASSIGN = "ASSIGN",
     EQUALS = "EQUALS",
@@ -33,3 +33,29 @@ export interface Token{
     line: number;
     column: number;
 }
+
+//now for regex
+//first I have to learn regex...
+// goal: be able to define each enum (type of token) through a regex token
+// also tie each token type to it's regex definition-- for this we'll use a new ojebect which holds the tokenType and regex def
+
+// simple defs
+/*
+    Keyword = int | string | boolean| print | while | if
+    ID = (a-z) only one
+    INT = (1-9)+(0-9)* no leading zeros
+    String = anything contained in ""
+    symbol = any of the following: ")}{(" (im not sure about the "")
+    whitespace = space and /n newline
+    assign = = (yea that looks weird)
+    equals = == (..that looks weirder)
+    bool = true|false
+    eop = $
+    comment = anything inside of slash star star slash (writing it like that to avoid breaking this comment)
+    
+*/
+
+
+const tokenRegex: {type: tokenType; regex: RegExp}[]=[
+
+]
