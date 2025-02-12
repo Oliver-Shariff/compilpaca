@@ -1,4 +1,4 @@
-import {tokenize, Token, tokenType} from "./lexer";
+import { tokenize, Token, tokenType } from './lexer.js';
 /*
 This fie should delliver JS to index.html
 tasks:
