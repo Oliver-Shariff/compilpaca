@@ -27,5 +27,32 @@ function handleLexing(){
         count programs
     */
 function formatTokens(tokens: Token[]): string{
-    
+    let errorCount = 0, programCount = 1;
+
+    let output = `INFO LEXER - Lexing program ${programCount}...\n`;
+
+    for (const token of tokens){
+        const {type, value, line, column} =token;
+        if (type === tokenType.UNKNOWN){
+            //add text color change here later
+            output += `ERROR Lexer = Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
+        }
+        else{
+            output += `INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} \n`;
+        }
+    }
+
+    if(errorCount == 0){
+        output += `INFO Lexer - Lex completed with 0 errors`;
+    }
+    else{
+        output += `ERROR Lexer - Lex failed with ${errorCount} errors`;
+    }
+
+    return output;
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const lexButton = document.getElementById("lexButton");
+    lexButton.addEventListener("click",handleLexing);
+});
