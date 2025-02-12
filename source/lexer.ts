@@ -14,15 +14,17 @@ lexer.ts should also do the following:
 export enum tokenType {
     KEYWORD = "KEYWORD",
     ID = "ID",
-    INT = "INT",
+    NUMBER = "NUMBER",
     STRING = "STRING",
     SYMBOL = "SYMBOL", // this inludes {}()
     WHITESPACE = "WHITESPACE", // SPACES AND NEWLINES
     ASSIGN = "ASSIGN",
-    EQUALS = "EQUALS",
+    EQUALITY = "EQUALITY",
     BOOL = "BOOL",
     EOP = "EOP",
-    COMMENT = "COMMENT" // SHOULD I JUST LUMP THIS INTO WHITESPACE?
+    COMMENT = "COMMENT", // SHOULD I JUST LUMP THIS INTO WHITESPACE?
+    OPEN = "OPEN", // {} for open and closing will need to be recognized seperate from just symbol when they encapsulate the whole program and not just a statement list 
+    CLOSE = "CLOSE"
 }
 
 //token structure
@@ -37,25 +39,42 @@ export interface Token{
 //now for regex
 //first I have to learn regex...
 // goal: be able to define each enum (type of token) through a regex token
-// also tie each token type to it's regex definition-- for this we'll use a new ojebect which holds the tokenType and regex def
 
 // simple defs
 /*
-    Keyword = int | string | boolean| print | while | if
-    ID = (a-z) only one
-    INT = (1-9)+(0-9)* no leading zeros
-    String = anything contained in ""
-    symbol = any of the following: ")}{(" (im not sure about the "")
-    whitespace = space and /n newline
-    assign = = (yea that looks weird)
-    equals = == (..that looks weirder)
-    bool = true|false
-    eop = $
-    comment = anything inside of slash star star slash (writing it like that to avoid breaking this comment)
-    
+Keyword = int | string | boolean| print | while | if
+ID = (a-z) only one
+INT = (1-9)+(0-9)* no leading zeros
+        actually nothing in the grammar restricts leading zeros
+        also change int to number since int is already a keywordNumber
+NUMBER = (0-9)+
+String = anything contained in "" EXCEPT FOR "|"
+symbol = any of the following: ")}{(" (im not sure about the "")
+whitespace = space and /n newline
+assign = = (yea that looks weird)
+equals = == (..that looks weirder)
+        dont forget != too, lets change this to equality
+bool = true|false
+eop = $
+comment = anything inside of slash star star slash (writing it like that to avoid breaking this comment)
+
+
 */
 
 
+//tie each token type to it's regex definition-- for this we'll use a new ojebect which holds the tokenType and regex def
 const tokenRegex: {type: tokenType; regex: RegExp}[]=[
-
+    {type: tokenType.KEYWORD, regex: /\b(int|string|boolean|print|while|if)\b/},
+    {type: tokenType.ID, regex: /\b[a-z]+\b/ },
+    {type: tokenType.NUMBER, regex: /\b[0-9]+\b/},
+    {type: tokenType.STRING, regex: /"([^"]*)"/},
+    {type: tokenType.SYMBOL, regex: /[{}()$]/},
+    {type: tokenType.WHITESPACE, regex: /\s+/},
+    {type: tokenType.ASSIGN, regex: /=/ },
+    {type: tokenType.EQUALITY, regex: /==|!=/ },
+    {type: tokenType.BOOL, regex:/\b(true|false)\b/ },
+    {type: tokenType.EOP, regex:/\$/ }, //$ is a special char in regex so we need the escape slash
+    {type: tokenType.COMMENT, regex: /\/\*[\s\S]*?\*\//}, //  * and / are special char in regex so they both need to be escaped
+    {type: tokenType.OPEN, regex: /{/},
+    {type: tokenType.CLOSE, regex: /}/},
 ]
