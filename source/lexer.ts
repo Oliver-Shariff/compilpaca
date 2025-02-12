@@ -2,11 +2,11 @@
 The below has been take from devNotes
 lexer.ts should also do the following:
 
-	define token structure (type, value, position (line and column?))
-	distinguish between tokens with RegEx formulas
-	take and input (test code) and 'tokenize' what it gets. ie use the structure and regex to assign what it reads as valid or invalid tokens
-	find errors and warnings
-	log the output accordingly
+    define token structure (type, value, position (line and column?))
+    distinguish between tokens with RegEx formulas
+    take and input (test code) and 'tokenize' what it gets. ie use the structure and regex to assign what it reads as valid or invalid tokens
+    find errors and warnings
+    log the output accordingly
  */
 
 //using RegEx instead of brute force
@@ -24,12 +24,14 @@ export enum tokenType {
     EOP = "EOP",
     COMMENT = "COMMENT", // SHOULD I JUST LUMP THIS INTO WHITESPACE?
     OPEN = "OPEN", // {} for open and closing will need to be recognized seperate from just symbol when they encapsulate the whole program and not just a statement list 
-    CLOSE = "CLOSE"
+    CLOSE = "CLOSE",
+    UNKNOWN = "UNKNOWN"
+
 }
 
 //token structure
 //this is going to be called by index.ts so we need to export it
-export interface Token{
+export interface Token {
     type: tokenType;
     value: string; // store every token as a string value (even if its a number)
     line: number;
@@ -63,20 +65,20 @@ comment = anything inside of slash star star slash (writing it like that to avoi
 
 
 //tie each token type to it's regex definition-- for this we'll use a new ojebect which holds the tokenType and regex def
-const tokenRegex: {type: tokenType; regex: RegExp}[]=[
-    {type: tokenType.KEYWORD, regex: /\b(int|string|boolean|print|while|if)\b/},
-    {type: tokenType.ID, regex: /\b[a-z]\b/ },
-    {type: tokenType.NUMBER, regex: /\b[0-9]+\b/}, //the grammar may not allow for a multi digit number
-    {type: tokenType.STRING, regex: /"([^"]*)"/},
-    {type: tokenType.SYMBOL, regex: /[{}()$]/},
-    {type: tokenType.WHITESPACE, regex: /\s+/},
-    {type: tokenType.EQUALITY, regex: /==|!=/ }, //this needs to come before the assign token
-    {type: tokenType.ASSIGN, regex: /=/ },
-    {type: tokenType.BOOL, regex:/\b(true|false)\b/ },
-    {type: tokenType.EOP, regex:/\$/ }, //$ is a special char in regex so we need the escape slash
-    {type: tokenType.COMMENT, regex: /\/\*[\s\S]*?\*\//}, //  * and / are special char in regex so they both need to be escaped
-    {type: tokenType.OPEN, regex: /{/},
-    {type: tokenType.CLOSE, regex: /}/},
+const tokenRegex: { type: tokenType; regex: RegExp }[] = [
+    { type: tokenType.KEYWORD, regex: /\b(int|string|boolean|print|while|if)\b/ },
+    { type: tokenType.ID, regex: /\b[a-z]\b/ },
+    { type: tokenType.NUMBER, regex: /\b[0-9]+\b/ }, //the grammar may not allow for a multi digit number
+    { type: tokenType.STRING, regex: /"([^"]*)"/ },
+    { type: tokenType.SYMBOL, regex: /[{}()$]/ },
+    { type: tokenType.WHITESPACE, regex: /\s+/ },
+    { type: tokenType.EQUALITY, regex: /==|!=/ }, //this needs to come before the assign token
+    { type: tokenType.ASSIGN, regex: /=/ },
+    { type: tokenType.BOOL, regex: /\b(true|false)\b/ },
+    { type: tokenType.EOP, regex: /\$/ }, //$ is a special char in regex so we need the escape slash
+    { type: tokenType.COMMENT, regex: /\/\*[\s\S]*?\*\// }, //  * and / are special char in regex so they both need to be escaped
+    { type: tokenType.OPEN, regex: /{/ },
+    { type: tokenType.CLOSE, regex: /}/ },
 ]
 /*
 now we need to build a loop that looks through the input and:
@@ -84,5 +86,57 @@ now we need to build a loop that looks through the input and:
     identifies tokens
     in an array store the type, value, line, and column of the token
     return the array
+
+    ChatGPT helped me create the below function as it stands now based off my above definition
+    Let's test it and see if we can optimize how this works
 */
 
+export function tokenize(input: string): Token[] {
+    const tokens: Token[] = [];
+    let line = 1, column = 0; //convention to start on line 1 (right?)
+
+    while (input.length > 0) {
+        let matchFound = false;
+
+        for (const { type, regex } of tokenRegex) { //loop through regex definitions
+            const match = input.match(regex);
+
+            if (match && match.index === 0) {
+                const value = match[0];
+
+                //ont put comments or whitespace into token array
+                if (type !== tokenType.WHITESPACE && type !== tokenType.COMMENT) {
+                    tokens.push({ type, value, line, column });
+                }
+
+                //update position
+                const newLines = value.match(/\n/g);
+                if (newLines) {
+                    line += newLines.length;
+                    column = value.length - value.lastIndexOf("\n");
+                }
+                else {
+                    column += value.length;
+                }
+
+                input = input.slice(value.length);
+                matchFound = true;
+                break;
+            }
+        }
+        if (!matchFound) {
+            const unknownChar = input[0];
+            tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column });
+
+            if (unknownChar == "\n") {
+                line++;
+            }
+            else {
+                column++;
+            }
+            input = input.slice(unknownChar.length);
+        }
+    }
+
+    return tokens;
+}
