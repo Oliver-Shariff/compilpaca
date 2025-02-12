@@ -1,3 +1,49 @@
+
+QUESTIONS:
+
+Does the grammar allow for multi digit numbers? - NO
+---------------------------------------------------------------------------------------------------------
+
+Feb 12th
+2pm
+
+The site is live, lexer is running on input code and displaying an output. Enums have been properly adjusted but there still may be some work to do. Currently we are not handling mutliple programs properly and these is no logic at all to handle warnings, only errors.
+Goal is to continue testing and adjusting the login in index.ts formatTokens() to handle this.
+After that we'll make sure that all of Alan's test cases return the expected output. Then we can use crazier test cases and continue imporving code
+	todo:
+		handle mulitple programs in one input
+		recognize warnings
+		add $ (EOP) if none is present
+		change text appearance for warnings and errors
+---------------------------------------------------------------------------------------------------------
+
+Feb 11
+
+previous work was mostly wrong but rereading the chapter and instructions I understand better
+
+**New Branch** - newStruct
+
+Structure of project changes to use browser and remove node-modules from git
+
+lexer directory removed and lexer.ts and index.ts places in source folder
+
+Now I'll move the enum I created earlier (and backed up locally) to lexer.ts
+
+lexer.ts should also do the following:
+
+	define token structure (type, value, position (line and column?))
+	distinguish between tokens with RegEx formulas
+	take and input (test code) and 'tokenize' what it gets. ie use the structure and regex to assign what it reads as valid or invalid tokens
+	find errors and warnings
+	log the output accordingly
+
+index.ts
+
+	create JS for index.html.
+
+---------------------------------------------------------------------------------------------------------
+Feb 2
+
 Commit 0:
 project structure intailaized
 there might be issues with where JS code generates
@@ -31,30 +77,3 @@ We need to read charecters, sorth them into tokens, and check their validity
 
 test cases will be in local folder but can be any name or extension
 ---------------------------------------------------------------------------------------------------------
-Feb 11
-previous work was mostly wrong but rereading the chapter and instructions I understand better
-
-**New Branch** - newStruct
-
-Structure of project changes to use browser and remove node-modules from git
-
-lexer directory removed and lexer.ts and index.ts places in source folder
-
-Now I'll move the enum I created earlier (and backed up locally) to lexer.ts
-
-lexer.ts should also do the following:
-
-	define token structure (type, value, position (line and column?))
-	distinguish between tokens with RegEx formulas
-	take and input (test code) and 'tokenize' what it gets. ie use the structure and regex to assign what it reads as valid or invalid tokens
-	find errors and warnings
-	log the output accordingly
-
-index.ts
-
-	create JS for index.html.
-
-
-QUESTIONS:
-
-Does the grammar allow for multi digit numbers?

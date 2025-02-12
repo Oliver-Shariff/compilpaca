@@ -70,7 +70,7 @@ const tokenRegex: { type: tokenType; regex: RegExp }[] = [
     { type: tokenType.ID, regex: /\b[a-z]\b/ },
     { type: tokenType.NUMBER, regex: /\b[0-9]+\b/ }, //the grammar may not allow for a multi digit number
     { type: tokenType.STRING, regex: /"([^"]*)"/ },
-    { type: tokenType.SYMBOL, regex: /[{}()$]/ },
+    { type: tokenType.SYMBOL, regex: /[{}()]/ },
     { type: tokenType.WHITESPACE, regex: /\s+/ },
     { type: tokenType.EQUALITY, regex: /==|!=/ }, //this needs to come before the assign token
     { type: tokenType.ASSIGN, regex: /=/ },

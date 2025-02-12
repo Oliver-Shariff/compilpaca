@@ -35,14 +35,15 @@ function formatTokens(tokens: Token[]): string{
         const {type, value, line, column} =token;
         if (type === tokenType.UNKNOWN){
             //add text color change here later
-            output += `ERROR Lexer = Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
+            output += `ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
+            errorCount++;
         }
         else{
             output += `INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} \n`;
         }
     }
 
-    if(errorCount == 0){
+    if(errorCount === 0){
         output += `INFO Lexer - Lex completed with 0 errors`;
     }
     else{
