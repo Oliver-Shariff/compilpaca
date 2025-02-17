@@ -30,13 +30,22 @@ formatTokens() goal
 function formatTokens(tokens: Token[]): string {
     let errorCount = 0, programCount = 1, warnCount = 0;
 
-    let output = `INFO LEXER - Lexing program ${programCount}...\n`;
+    let output = `INFO Lexer - Lexing program ${programCount}...\n`;
 
     let inComment, inQuote = false;
 
     for (const token of tokens) {
         const { type, value, line, column } = token;
 
+        if (type === tokenType.UNKNOWN) {
+            //add text color change here later
+            output += `ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
+            errorCount++;
+        }
+
+        else if (type !== tokenType.COM_END && type !== tokenType.COM_START) {
+            output += `INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} \n`;
+        }
         //this block lets me determine if we end the prgram while in a comment or string
         //we could just use the interface to pass this info here but we don't want to store comments in the token stream
         //we do still have to store the comment's start and end symbols or there is no way to tell that we are still in a comment
@@ -54,34 +63,7 @@ function formatTokens(tokens: Token[]): string {
                 inQuote = false;
             }
         }
-
-
-        if (type === tokenType.UNKNOWN) {
-            //add text color change here later
-            output += `ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
-            errorCount++;
-        }
-
-        else if (type !== tokenType.COM_END && type !== tokenType.COM_START) {
-            output += `INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} \n`;
-        }
     }
-    /*
-    if(tokens[tokens.length -1].inComment == true){
-        for(let i = tokens.length; i < 0;){
-            if( tokens[i].inQuote == true){
-                i--;
-            }
-            else{
-                output += `WARNING UNTERMINATED COMMENT STARTING AT LINE: ${tokens[i].line} COL: ${tokens[i].column} \n`;
-            }
-        }
-    }
-
-    if(tokens[tokens.length -1].inQuote == true){
-        output += `WARNING UNTERMINATED STRING \n`;
-    }
-    */
 
     function findLastIndex(tokens: Token[], targetType: tokenType): number {
         for (let i = tokens.length - 1; i >= 0; i--) {
@@ -93,14 +75,26 @@ function formatTokens(tokens: Token[]): string {
     }
 
     if (inComment == true) {
-        const lastIndex = findLastIndex(tokens,tokenType.COM_START);
-
+        const lastIndex = findLastIndex(tokens, tokenType.COM_START);
+        warnCount++;
         output += `WARNING UNTERMINATED COMMENT BEGINNING AT LINE: ${tokens[lastIndex].line} COL: ${tokens[lastIndex].column} \n`;
     }
     if (inQuote == true) {
-        const lastIndex = findLastIndex(tokens,tokenType.QUOTE);
-
+        const lastIndex = findLastIndex(tokens, tokenType.QUOTE);
+        warnCount++;
         output += `WARNING UNTERMINATED QUOTE BEGINNING AT LINE: ${tokens[lastIndex].line} COL: ${tokens[lastIndex].column} \n`
+    }
+    if (tokens[tokens.length-1].type != tokenType.EOP){
+        warnCount++;
+        output += `Warning: Missing EOP at end of file! \n`;
+        //do I need to actually add this token to the array? that depends on how I implement parse and where parse.ts will retrieve the tokens from.
+        //let's implement this push on the safe side and reevalate later, it makes more sense to add it to lexer.ts but then we can;t give an error message to the user
+        tokens.push({
+            type: tokenType.EOP,
+            value: "$",
+            line: tokens.length > 0 ? tokens[tokens.length - 1].line : 1,
+            column: tokens.length > 0 ? tokens[tokens.length - 1].column + 1 : 1
+        });
     }
 
     if (errorCount === 0) {
