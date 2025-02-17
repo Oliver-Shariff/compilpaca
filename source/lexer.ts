@@ -39,6 +39,7 @@ export interface Token {
     value: string; // store every token as a string value (even if its a number)
     line: number;
     column: number;
+    inQuote: boolean;
 }
 
 /*
@@ -153,7 +154,7 @@ export function tokenize(input: string): Token[] {
         }
         if (!matchFound) {
             const unknownChar = input[0];
-            tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column });
+            tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column, inQuote});
 
             if (unknownChar == "\n") {
                 line++;
