@@ -24,7 +24,7 @@ export enum tokenType {
     BOOL = "BOOL",
     EOP = "EOP",
     COMMENT = "COMMENT", // SHOULD I JUST LUMP THIS INTO WHITESPACE?
-    OPEN = "OPEN", // {} for open and closing will need to be recognized seperate from just symbol when they encapsulate the whole program and not just a statement list 
+    OPEN = "OPEN", // {} for open and closing will need to be recognized seperate from just symbol when they encapsulate the whole program and not just a statement list
     CLOSE = "CLOSE",
     UNKNOWN = "UNKNOWN",
     QUOTE = "QUOTE",
@@ -79,7 +79,7 @@ const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
     { type: tokenType.CHAR, regex: /[a-z]/, log: true },
     { type: tokenType.QUOTE, regex: /"/, log: true },
     { type: tokenType.SYMBOL, regex: /[{}()]/, log: true },
-    { type: tokenType.SPACE, regex: / +/, log: true },//strings can have spaces but not new lines or tabs
+    { type: tokenType.SPACE, regex: / +/, log: true },//strings can have spaces but not new lines or tabs, I treat sequential spaces as one token for a more readable output
     { type: tokenType.WHITESPACE, regex: /\s+/, log: false },
     { type: tokenType.EQUALITY, regex: /==|!=/, log: true }, //this needs to come before the assign token
     { type: tokenType.ASSIGN, regex: /=/, log: true },
@@ -95,9 +95,6 @@ now we need to build a loop that looks through the input and:
     identifies tokens
     in an array store the type, value, line, and column of the token
     return the array
-
-    ChatGPT helped me create the below function as it stands now based off my above definition
-    Let's test it and see if we can optimize how this works
 */
 
 export function tokenize(input: string): Token[] {
@@ -130,6 +127,8 @@ export function tokenize(input: string): Token[] {
                 }
                 //check if we are in quotes before comments
                 //strings should take higher precedence - that way we can print /**/  if we want to, just write your comment somehwere else, like a spot that makes sense..
+                //in this grammar the only things allowed within quotes are spaces and chars
+                //Still I think strings take higher precedence than comments,If a developer places a comment symbol inside a string I assume they were trying to print it - even if this language doesnt allow that
                 else if(inComment){
                     if(type == tokenType.COM_END){
                         inComment = false;
@@ -172,7 +171,9 @@ export function tokenize(input: string): Token[] {
         }
         if (!matchFound) {
             const unknownChar = input[0];
-            tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column, inQuote});
+            if(inComment == false){
+                tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column, inQuote});
+            }
 
             if (unknownChar == "\n") {
                 line++;
