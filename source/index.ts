@@ -23,7 +23,8 @@ function handleLexing(){
     formatTokens() goal
         take in tokens[] from tokenize function
         return info in text
-        count errors
+        identify and count errors
+        identify and count warnings
         count programs
     */
 function formatTokens(tokens: Token[]): string{
@@ -32,7 +33,11 @@ function formatTokens(tokens: Token[]): string{
     let output = `INFO LEXER - Lexing program ${programCount}...\n`;
 
     for (const token of tokens){
-        const {type, value, line, column} =token;
+        const {type, value, line, column} = token;
+        let braceOpen = false, quoteOpen = false, parenOpen = false;
+        //note: we may need to change the regEx def for the tokens related to the above so warnign handling can be better implemented
+
+
         if (type === tokenType.UNKNOWN){
             //add text color change here later
             output += `ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
@@ -49,7 +54,14 @@ function formatTokens(tokens: Token[]): string{
     else{
         output += `ERROR Lexer - Lex failed with ${errorCount} errors`;
     }
-
+    /*
+    if( type === tokenType.OPEN){
+        braceOpen = true;
+        
+        
+    }
+    */
+    
     return output;
 }
 

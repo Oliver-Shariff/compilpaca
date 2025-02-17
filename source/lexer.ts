@@ -66,15 +66,15 @@ comment = anything inside of slash star star slash (writing it like that to avoi
 
 //tie each token type to it's regex definition-- for this we'll use a new ojebect which holds the tokenType and regex def
 const tokenRegex: { type: tokenType; regex: RegExp }[] = [
-    { type: tokenType.KEYWORD, regex: /\b(int|string|boolean|print|while|if)\b/ },
-    { type: tokenType.ID, regex: /\b[a-z]\b/ },
-    { type: tokenType.NUMBER, regex: /\b[0-9]+\b/ }, //the grammar may not allow for a multi digit number
+    { type: tokenType.KEYWORD, regex: /(int|string|boolean|print|while|if)/ },
+    { type: tokenType.BOOL, regex: /(true|false)/ },
+    { type: tokenType.ID, regex: /[a-z]/ },
+    { type: tokenType.NUMBER, regex: /[0-9]+/ }, //the grammar may not allow for a multi digit number
     { type: tokenType.STRING, regex: /"([^"]*)"/ },
     { type: tokenType.SYMBOL, regex: /[{}()]/ },
     { type: tokenType.WHITESPACE, regex: /\s+/ },
     { type: tokenType.EQUALITY, regex: /==|!=/ }, //this needs to come before the assign token
     { type: tokenType.ASSIGN, regex: /=/ },
-    { type: tokenType.BOOL, regex: /\b(true|false)\b/ },
     { type: tokenType.EOP, regex: /\$/ }, //$ is a special char in regex so we need the escape slash
     { type: tokenType.COMMENT, regex: /\/\*[\s\S]*?\*\// }, //  * and / are special char in regex so they both need to be escaped
     { type: tokenType.OPEN, regex: /{/ },

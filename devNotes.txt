@@ -3,6 +3,13 @@ QUESTIONS:
 
 Does the grammar allow for multi digit numbers? - NO
 ---------------------------------------------------------------------------------------------------------
+
+Test cases:
+/*lex without spaces*/
+{intaa=1print(a)booleanbb=true}$
+
+---------------------------------------------------------------------------------------------------------
+
 Feb 17th
 
 to do:
