@@ -14,9 +14,10 @@ function handleLexing() {
     const outputElement = document.getElementById("tokenOutput") as HTMLPreElement;
 
     const inputCode = inputElement.value;
-    const tokens: Token[] = tokenize(inputCode);
+    const { tokens, finalInComment, finalInQuote, missingEOP } = tokenize(inputCode); // Destructure the object
 
-    const outputLog = formatTokens(tokens);
+
+    const outputLog = formatTokens(tokens, finalInComment, finalInQuote, missingEOP );
     outputElement.textContent = outputLog;
 }
 /*
@@ -27,7 +28,7 @@ formatTokens() goal
     identify and count warnings
     count programs
 */
-function formatTokens(tokens: Token[]): string {
+function formatTokens(tokens: Token[], finalInComment, finalInQuote, missingEOP ): string {
     let errorCount = 0, programCount = 1, warnCount = 0;
 
     let output = `INFO Lexer - Lexing program ${programCount}...\n`;
@@ -104,6 +105,7 @@ function formatTokens(tokens: Token[]): string {
         output += `ERROR Lexer - Lex failed with ${errorCount} errors and ${warnCount} warnings`;
     }
 
+    output += " final comment: " + finalInComment + " final quote: " + finalInQuote + " missingEOP " + missingEOP ;
 
     return output;
 }

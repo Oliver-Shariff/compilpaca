@@ -31,6 +31,7 @@ Wait that still doesnt work since com start and end are not added to tokens[]
 
 Ok but it does work for quotes
 
+I realized I can add the inQuote, inComment, and missingEOP flags to the return of the tokenize function. That way I can avoid logic in index.ts  and eliminate redundancy
 ---------------------------------------------------------------------------------------------------------
 
 Feb 12th
