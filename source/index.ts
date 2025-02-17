@@ -34,13 +34,14 @@ function formatTokens(tokens: Token[]): string{
 
     for (const token of tokens){
         const {type, value, line, column} = token;
-        let braceOpen = false, quoteOpen = false, parenOpen = false;
-        //note: we may need to change the regEx def for the tokens related to the above so warnign handling can be better implemented
-
 
         if (type === tokenType.UNKNOWN){
             //add text color change here later
             output += `ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
+            errorCount++;
+        }
+        else if(type === tokenType.QUOTE){
+            output += `ERROR Lexer -  Unlosed quote ${value} on line:${line} col:${column} \n`;
             errorCount++;
         }
         else{

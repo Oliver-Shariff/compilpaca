@@ -25,7 +25,8 @@ export enum tokenType {
     COMMENT = "COMMENT", // SHOULD I JUST LUMP THIS INTO WHITESPACE?
     OPEN = "OPEN", // {} for open and closing will need to be recognized seperate from just symbol when they encapsulate the whole program and not just a statement list 
     CLOSE = "CLOSE",
-    UNKNOWN = "UNKNOWN"
+    UNKNOWN = "UNKNOWN",
+    QUOTE = "QUOTE"
 
 }
 
@@ -71,6 +72,7 @@ const tokenRegex: { type: tokenType; regex: RegExp }[] = [
     { type: tokenType.ID, regex: /[a-z]/ },
     { type: tokenType.NUMBER, regex: /[0-9]+/ }, //the grammar may not allow for a multi digit number
     { type: tokenType.STRING, regex: /"([^"]*)"/ },
+    { type: tokenType.QUOTE, regex: /"/ },
     { type: tokenType.SYMBOL, regex: /[{}()]/ },
     { type: tokenType.WHITESPACE, regex: /\s+/ },
     { type: tokenType.EQUALITY, regex: /==|!=/ }, //this needs to come before the assign token
@@ -108,7 +110,6 @@ export function tokenize(input: string): Token[] {
                 if (type !== tokenType.WHITESPACE && type !== tokenType.COMMENT) {
                     tokens.push({ type, value, line, column });
                 }
-
                 //update position
                 const newLines = value.match(/\n/g);
                 if (newLines) {

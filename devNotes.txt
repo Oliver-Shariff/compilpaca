@@ -8,6 +8,8 @@ Test cases:
 /*lex without spaces*/
 {intaa=1print(a)booleanbb=true}$
 
+/*multiple strings with some missing quotes*/
+{intaa=1print("hello world)booleanbb=true}{intaa=1print("hello world)booleanbb=true}$
 ---------------------------------------------------------------------------------------------------------
 
 Feb 17th
