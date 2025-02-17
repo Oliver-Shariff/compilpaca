@@ -113,13 +113,13 @@ export function tokenize(input: string): Token[] {
                 let adjustedType = type;
                 let adjustedLog = log;
                 if (quoteOpen){
-                    if(type == tokenType.ID || type == tokenType.SPACE){
+                    if(type == tokenType.ID){
                         adjustedType = tokenType.CHAR;
                     }
                     else if(type == tokenType.QUOTE){
                         quoteOpen = false;
                     }
-                    else{
+                    else if(type != tokenType.SPACE){
                         adjustedType = tokenType.UNKNOWN;
                     }
                 }
