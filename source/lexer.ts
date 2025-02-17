@@ -28,7 +28,9 @@ export enum tokenType {
     CLOSE = "CLOSE",
     UNKNOWN = "UNKNOWN",
     QUOTE = "QUOTE",
-    SPACE = "SPACE"
+    SPACE = "SPACE",
+    COM_START = "COM_START",
+    COM_END = "COM_END"
 
 }
 
@@ -82,7 +84,8 @@ const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
     { type: tokenType.EQUALITY, regex: /==|!=/, log: true }, //this needs to come before the assign token
     { type: tokenType.ASSIGN, regex: /=/, log: true },
     { type: tokenType.EOP, regex: /\$/, log: true }, //$ is a special char in regex so we need the escape slash
-    { type: tokenType.COMMENT, regex: /\/\*[\s\S]*?\*\//, log: false }, //  * and / are special char in regex so they both need to be escaped
+    { type: tokenType.COM_START, regex: /\/\*/, log: false },
+    { type: tokenType.COM_END, regex: /\*\//, log: false },
     { type: tokenType.OPEN, regex: /{/, log: true },
     { type: tokenType.CLOSE, regex: /}/, log: true },
 ]
@@ -99,7 +102,7 @@ now we need to build a loop that looks through the input and:
 
 export function tokenize(input: string): Token[] {
     const tokens: Token[] = [];
-    let line = 1, column = 0, inQuote = false; //convention to start on line 1 (right?)
+    let line = 1, column = 0, inQuote = false, inComment = false; //convention to start on line 1 (right?)
 
     while (input.length > 0) {
         let matchFound = false;
@@ -120,13 +123,28 @@ export function tokenize(input: string): Token[] {
                     else if(type == tokenType.QUOTE){
                         inQuote = false;
                     }
-                    else if(type != tokenType.SPACE){
+                    else if(type !== tokenType.SPACE){
                         adjustedType = tokenType.UNKNOWN;
+                        adjustedLog = true;
                     }
                 }
-                else{ //inQuote == false
+                //check if we are in quotes before comments
+                //strings should take higher precedence - that way we can print /**/  if we want to, just write your comment somehwere else, like a spot that makes sense..
+                else if(inComment){
+                    if(type == tokenType.COM_END){
+                        inComment = false;
+                    }
+                    else {
+                        adjustedType = tokenType.COMMENT;
+                        adjustedLog = false;
+                    }
+                }
+                else{ //inQuote == false && inComment == false
                     if(type == tokenType.QUOTE){
                         inQuote = true;
+                    }
+                    else if(type == tokenType.COM_START){
+                        inComment = true;
                     }
                     else if(type == tokenType.SPACE){
                         adjustedType = tokenType.WHITESPACE; //if the quote is closed then spaces should be treated as whitespace (not displayed)
@@ -135,7 +153,7 @@ export function tokenize(input: string): Token[] {
                 }
                 //dont put comments or whitespace into token array
                 if (adjustedLog == true) {
-                    tokens.push({ type: adjustedType, value, line, column });
+                    tokens.push({ type: adjustedType, value, line, column, inQuote });
                 }
                 //update position
                 const newLines = value.match(/\n/g);
