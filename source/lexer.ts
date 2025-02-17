@@ -5,7 +5,6 @@ export enum tokenType {
     KEYWORD = "KEYWORD",
     ID = "ID",
     NUMBER = "NUMBER",
-    //STRING = "STRING",
     CHAR = "CHAR",
     SYMBOL= "SYMBOL", // this inludes {}()
     WHITESPACE = "WHITESPACE", // SPACES AND NEWLINES
@@ -14,13 +13,15 @@ export enum tokenType {
     BOOL = "BOOL",
     EOP = "EOP",
     COMMENT = "COMMENT", // SHOULD I JUST LUMP THIS INTO WHITESPACE?
-    OPEN = "OPEN", // {} for open and closing will need to be recognized seperate from just symbol when they encapsulate the whole program and not just a statement list
-    CLOSE = "CLOSE",
+    LBRACE = "LBRACE", // {} for open and closing will need to be recognized seperate from just symbol when they encapsulate the whole program and not just a statement list
+    RBRACE = "RBRACE",
     UNKNOWN = "UNKNOWN",
     QUOTE = "QUOTE",
     SPACE = "SPACE",
     COM_START = "COM_START",
-    COM_END = "COM_END"
+    COM_END = "COM_END",
+    LPAREN = "LPAREN",
+    RPAREN = "RPAREN"
 
 }
 
@@ -69,7 +70,8 @@ const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
     { type: tokenType.NUMBER, regex: /[0-9]+/, log: true }, //the grammar may not allow for a multi digit number
     { type: tokenType.CHAR, regex: /[a-z]/, log: true },
     { type: tokenType.QUOTE, regex: /"/, log: true },
-    { type: tokenType.SYMBOL, regex: /[{}()]/, log: true },
+    { type: tokenType.LPAREN, regex: /[(]/, log: true },
+    { type: tokenType.RPAREN, regex: /[)]/, log: true },
     { type: tokenType.SPACE, regex: / +/, log: true },//strings can have spaces but not new lines or tabs, I treat sequential spaces as one token for a more readable output
     { type: tokenType.WHITESPACE, regex: /\s+/, log: false },
     { type: tokenType.EQUALITY, regex: /==|!=/, log: true }, //this needs to come before the assign token
@@ -77,8 +79,8 @@ const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
     { type: tokenType.EOP, regex: /\$/, log: true }, //$ is a special char in regex so we need the escape slash
     { type: tokenType.COM_START, regex: /\/\*/, log: true },
     { type: tokenType.COM_END, regex: /\*\//, log: true },
-    { type: tokenType.OPEN, regex: /{/, log: true },
-    { type: tokenType.CLOSE, regex: /}/, log: true },
+    { type: tokenType.LBRACE, regex: /{/, log: true },
+    { type: tokenType.RBRACE, regex: /}/, log: true },
 ]
 /*
 now we need to build a loop that looks through the input and:
@@ -178,6 +180,8 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
     }
     let finalInComment = inComment;
     let finalInQuote = inQuote;
+    /*
+    // this logic pushes a missing EOP symbol if its missing, we can reimplement this if it is necessary for the parser
     if (tokens[tokens.length-1].type != tokenType.EOP){
         tokens.push({
             type: tokenType.EOP,
@@ -185,7 +189,7 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
             line: tokens.length > 0 ? tokens[tokens.length - 1].line : 1,
             column: tokens.length > 0 ? tokens[tokens.length - 1].column + 1 : 1
         });
-    }
+    }*/
 
     return { tokens, finalInComment, finalInQuote };
 

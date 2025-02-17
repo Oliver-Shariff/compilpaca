@@ -56,10 +56,9 @@ function formatTokens(tokens: Token[], finalInComment: boolean, finalInQuote: bo
 
     // Handle the last program if no explicit EOP is found
     if (programTokens.length > 0) {
-        output += "this block actually ran";
         programCount++;
-        output += `\n INFO Lexer - Lexing program ${programCount}...\n`;
-        output += processProgram(programTokens, errorCount, warnCount, finalInComment, finalInQuote, false);//false since tokens are left over with noe explicit EOP 
+        output += `\nINFO Lexer - Lexing program ${programCount}...\n`;
+        output += processProgram(programTokens, errorCount, warnCount, finalInComment, finalInQuote, false);//false since tokens are left over with no explicit EOP
     }
     return output;
 }
