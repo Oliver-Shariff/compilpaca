@@ -83,21 +83,24 @@ function formatTokens(tokens: Token[]): string {
     }
     */
 
-    function findLastComStartIndex(tokens: Token[]): number {
+    function findLastIndex(tokens: Token[], targetType: tokenType): number {
         for (let i = tokens.length - 1; i >= 0; i--) {
-            if (tokens[i].type === tokenType.COM_START) {
-                return i; // Return index as soon as it's found
+            if (tokens[i].type === targetType) {
+                return i;
             }
         }
-        return -1; // Return -1 if not found
+        return -1;
     }
-    if (inComment == true) {
-        const lastComStartIndex = findLastComStartIndex(tokens);
 
-        output += `WARNING UNTERMINATED COMMENT BEGINNING AT LINE: ${tokens[lastComStartIndex].line} COL: ${tokens[lastComStartIndex].column} \n`;
+    if (inComment == true) {
+        const lastIndex = findLastIndex(tokens,tokenType.COM_START);
+
+        output += `WARNING UNTERMINATED COMMENT BEGINNING AT LINE: ${tokens[lastIndex].line} COL: ${tokens[lastIndex].column} \n`;
     }
     if (inQuote == true) {
-        output += `WARNING UNTERMINATED QUOTE \n`
+        const lastIndex = findLastIndex(tokens,tokenType.QUOTE);
+
+        output += `WARNING UNTERMINATED QUOTE BEGINNING AT LINE: ${tokens[lastIndex].line} COL: ${tokens[lastIndex].column} \n`
     }
 
     if (errorCount === 0) {
