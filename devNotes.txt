@@ -19,6 +19,8 @@ to do:
 	-remove /b word boundary so lex can uccur without spaes properly
 	-add some boolFlags like inBrace, inQuotes, inBlock(?)
 	-implement warning handling
+
+Strings are not lexemmes so I should remove iit from the regex, instead detect quotes and identify each piece as a char or space then anything else until next quote as invalid symbols
 ---------------------------------------------------------------------------------------------------------
 
 Feb 12th

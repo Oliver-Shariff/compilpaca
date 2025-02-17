@@ -15,8 +15,9 @@ export enum tokenType {
     KEYWORD = "KEYWORD",
     ID = "ID",
     NUMBER = "NUMBER",
-    STRING = "STRING",
-    SYMBOL = "SYMBOL", // this inludes {}()
+    //STRING = "STRING",
+    CHAR = "CHAR",
+    SYMBOL= "SYMBOL", // this inludes {}()
     WHITESPACE = "WHITESPACE", // SPACES AND NEWLINES
     ASSIGN = "ASSIGN",
     EQUALITY = "EQUALITY",
@@ -26,7 +27,8 @@ export enum tokenType {
     OPEN = "OPEN", // {} for open and closing will need to be recognized seperate from just symbol when they encapsulate the whole program and not just a statement list 
     CLOSE = "CLOSE",
     UNKNOWN = "UNKNOWN",
-    QUOTE = "QUOTE"
+    QUOTE = "QUOTE",
+    SPACE = "SPACE"
 
 }
 
@@ -66,21 +68,22 @@ comment = anything inside of slash star star slash (writing it like that to avoi
 
 
 //tie each token type to it's regex definition-- for this we'll use a new ojebect which holds the tokenType and regex def
-const tokenRegex: { type: tokenType; regex: RegExp }[] = [
-    { type: tokenType.KEYWORD, regex: /(int|string|boolean|print|while|if)/ },
-    { type: tokenType.BOOL, regex: /(true|false)/ },
-    { type: tokenType.ID, regex: /[a-z]/ },
-    { type: tokenType.NUMBER, regex: /[0-9]+/ }, //the grammar may not allow for a multi digit number
-    { type: tokenType.STRING, regex: /"([^"]*)"/ },
-    { type: tokenType.QUOTE, regex: /"/ },
-    { type: tokenType.SYMBOL, regex: /[{}()]/ },
-    { type: tokenType.WHITESPACE, regex: /\s+/ },
-    { type: tokenType.EQUALITY, regex: /==|!=/ }, //this needs to come before the assign token
-    { type: tokenType.ASSIGN, regex: /=/ },
-    { type: tokenType.EOP, regex: /\$/ }, //$ is a special char in regex so we need the escape slash
-    { type: tokenType.COMMENT, regex: /\/\*[\s\S]*?\*\// }, //  * and / are special char in regex so they both need to be escaped
-    { type: tokenType.OPEN, regex: /{/ },
-    { type: tokenType.CLOSE, regex: /}/ },
+const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
+    { type: tokenType.KEYWORD, regex: /(int|string|boolean|print|while|if)/, log: true },
+    { type: tokenType.BOOL, regex: /(true|false)/, log: true },
+    { type: tokenType.ID, regex: /[a-z]/, log: true },
+    { type: tokenType.NUMBER, regex: /[0-9]+/, log: true }, //the grammar may not allow for a multi digit number
+    { type: tokenType.CHAR, regex: /[a-z]/, log: true },
+    { type: tokenType.QUOTE, regex: /"/, log: true },
+    { type: tokenType.SYMBOL, regex: /[{}()]/, log: true },
+    { type: tokenType.SPACE, regex: / +/, log: true },//strings can have spaces but not new lines or tabs
+    { type: tokenType.WHITESPACE, regex: /\s+/, log: false },
+    { type: tokenType.EQUALITY, regex: /==|!=/, log: true }, //this needs to come before the assign token
+    { type: tokenType.ASSIGN, regex: /=/, log: true },
+    { type: tokenType.EOP, regex: /\$/, log: true }, //$ is a special char in regex so we need the escape slash
+    { type: tokenType.COMMENT, regex: /\/\*[\s\S]*?\*\//, log: false }, //  * and / are special char in regex so they both need to be escaped
+    { type: tokenType.OPEN, regex: /{/, log: true },
+    { type: tokenType.CLOSE, regex: /}/, log: true },
 ]
 /*
 now we need to build a loop that looks through the input and:
@@ -95,20 +98,43 @@ now we need to build a loop that looks through the input and:
 
 export function tokenize(input: string): Token[] {
     const tokens: Token[] = [];
-    let line = 1, column = 0; //convention to start on line 1 (right?)
+    let line = 1, column = 0, quoteOpen = false; //convention to start on line 1 (right?)
 
     while (input.length > 0) {
         let matchFound = false;
 
-        for (const { type, regex } of tokenRegex) { //loop through regex definitions
+        for (const { type, regex, log } of tokenRegex) { //loop through regex definitions
             const match = input.match(regex);
 
             if (match && match.index === 0) {
                 const value = match[0];
 
+                
+                let adjustedType = type;
+                let adjustedLog = log;
+                if (quoteOpen){
+                    if(type == tokenType.ID || type == tokenType.SPACE){
+                        adjustedType = tokenType.CHAR;
+                    }
+                    else if(type == tokenType.QUOTE){
+                        quoteOpen = false;
+                    }
+                    else{
+                        adjustedType = tokenType.UNKNOWN;
+                    }
+                }
+                else{
+                    if(type == tokenType.QUOTE){
+                        quoteOpen = true;
+                    }
+                    else if(type == tokenType.SPACE){
+                        adjustedType = tokenType.WHITESPACE; //if the quote is closed then spaces should be treated as whitespace (not displayed)
+                        adjustedLog = false;
+                    }
+                }
                 //dont put comments or whitespace into token array
-                if (type !== tokenType.WHITESPACE && type !== tokenType.COMMENT) {
-                    tokens.push({ type, value, line, column });
+                if (adjustedLog == true) {
+                    tokens.push({ type: adjustedType, value, line, column });
                 }
                 //update position
                 const newLines = value.match(/\n/g);

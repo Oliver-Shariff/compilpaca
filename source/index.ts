@@ -28,7 +28,7 @@ function handleLexing(){
         count programs
     */
 function formatTokens(tokens: Token[]): string{
-    let errorCount = 0, programCount = 1;
+    let errorCount = 0, programCount = 1, warnCount = 0;
 
     let output = `INFO LEXER - Lexing program ${programCount}...\n`;
 
@@ -39,30 +39,22 @@ function formatTokens(tokens: Token[]): string{
             //add text color change here later
             output += `ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
             errorCount++;
-        }
+        }/*
         else if(type === tokenType.QUOTE){
-            output += `ERROR Lexer -  Unlosed quote ${value} on line:${line} col:${column} \n`;
-            errorCount++;
-        }
+            output += `WARNING Lexer -  Unclosed quote ${value} on line:${line} col:${column} \n`;
+            warnCount++;
+        }*/
         else{
             output += `INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} \n`;
         }
     }
 
     if(errorCount === 0){
-        output += `INFO Lexer - Lex completed with 0 errors`;
+        output += `INFO Lexer - Lex completed with 0 errors and ${warnCount} warnings`;
     }
     else{
-        output += `ERROR Lexer - Lex failed with ${errorCount} errors`;
+        output += `ERROR Lexer - Lex failed with ${errorCount} errors and ${warnCount} warnings`;
     }
-    /*
-    if( type === tokenType.OPEN){
-        braceOpen = true;
-        
-        
-    }
-    */
-    
     return output;
 }
 
