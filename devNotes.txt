@@ -24,6 +24,13 @@ Strings are not lexemmes so I should remove it from the regex, instead detect qu
 
 Lets treat comments like strings in that we should recognize the start and end seperately and anything in between will be transmuted to a comment
 we can even skip looping through regex def while inComment is true
+
+anything inside a comment doesn't get added to tokens[] so I can;t look at the last token and check inComment as a way to check for unterminated comments. We'll need to handle this flag some other way. What if I looked for com_start and see if I ever get com_end?
+
+Wait that still doesnt work since com start and end are not added to tokens[]
+
+Ok but it does work for quotes
+
 ---------------------------------------------------------------------------------------------------------
 
 Feb 12th

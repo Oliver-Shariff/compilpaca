@@ -32,23 +32,38 @@ function formatTokens(tokens: Token[]): string{
 
     let output = `INFO LEXER - Lexing program ${programCount}...\n`;
 
+    let inComment, inQuote = false;
+
     for (const token of tokens){
         const {type, value, line, column} = token;
+        
+        if(type === tokenType.COM_START){
+            inComment = true;
+        }
+        else if(type === tokenType.COM_END){
+            inComment = false;
+        }
+        else if(type === tokenType.QUOTE){
+            if(inQuote == false){
+                inQuote = true;
+            }
+            else{
+                inQuote = true;
+            }
+        }
+        
 
         if (type === tokenType.UNKNOWN){
             //add text color change here later
             output += `ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
             errorCount++;
-        }/*
-        else if(type === tokenType.QUOTE){
-            output += `WARNING Lexer -  Unclosed quote ${value} on line:${line} col:${column} \n`;
-            warnCount++;
-        }*/
-        else{
+        }
+
+        else if (type !== tokenType.COM_END && type !== tokenType.COM_START ){
             output += `INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} \n`;
         }
     }
-    
+    /*
     if(tokens[tokens.length -1].inComment == true){
         for(let i = tokens.length; i < 0;){
             if( tokens[i].inQuote == true){
@@ -62,6 +77,14 @@ function formatTokens(tokens: Token[]): string{
 
     if(tokens[tokens.length -1].inQuote == true){
         output += `WARNING UNTERMINATED STRING \n`;
+    }
+    */
+    
+    if(inComment == true){
+        output += `WARNING UNTERMINATED COMMENT \n`;
+    }
+    if(inQuote == true){
+        output += `WARNING UNTERMINATED QUOTE \n`
     }
 
     if(errorCount === 0){
