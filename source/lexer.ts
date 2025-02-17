@@ -31,8 +31,8 @@ export interface Token {
     value: string; // store every token as a string value (even if its a number)
     line: number;
     column: number;
-    inQuote: boolean;
-    inComment: boolean;
+    //inQuote: boolean;
+    //inComment: boolean;
 }
 
 /*
@@ -143,7 +143,7 @@ export function tokenize(input: string): Token[] {
                 }
                 //dont put comments or whitespace into token array
                 if (adjustedLog == true) {
-                    tokens.push({ type: adjustedType, value, line, column, inQuote, inComment });
+                    tokens.push({ type: adjustedType, value, line, column});
                 }
                 //update position
                 const newLines = value.match(/\n/g);
@@ -163,7 +163,7 @@ export function tokenize(input: string): Token[] {
         if (!matchFound) {
             const unknownChar = input[0];
             if(inComment == false){
-                tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column, inQuote, inComment});
+                tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column});
             }
 
             if (unknownChar == "\n") {
