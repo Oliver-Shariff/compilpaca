@@ -3,12 +3,20 @@ QUESTIONS:
 
 Does the grammar allow for multi digit numbers? - NO
 ---------------------------------------------------------------------------------------------------------
+Feb 17th
+
+to do:
+	-verify order or toxenRegex array so longest match is enforced
+	-remove /b word boundary so lex can uccur without spaes properly
+	-add some boolFlags like inBrace, inQuotes, inBlock(?)
+	-implement warning handling
+---------------------------------------------------------------------------------------------------------
 
 Feb 12th
 2pm
 
-The site is live, lexer is running on input code and displaying an output. Enums have been properly adjusted but there still may be some work to do. Currently we are not handling mutliple programs properly and these is no logic at all to handle warnings, only errors.
-Goal is to continue testing and adjusting the login in index.ts formatTokens() to handle this.
+The site is live, lexer is running on input code and displaying an output. Enums have been properly adjusted but there still may be some work to do. Currently we are not handling mutliple programs properly and there is no logic at all to handle warnings, only errors.
+Goal is to continue testing and adjusting the logic in index.ts formatTokens() to handle this.
 After that we'll make sure that all of Alan's test cases return the expected output. Then we can use crazier test cases and continue imporving code
 	todo:
 		handle mulitple programs in one input

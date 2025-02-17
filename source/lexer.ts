@@ -104,7 +104,7 @@ export function tokenize(input: string): Token[] {
             if (match && match.index === 0) {
                 const value = match[0];
 
-                //ont put comments or whitespace into token array
+                //dont put comments or whitespace into token array
                 if (type !== tokenType.WHITESPACE && type !== tokenType.COMMENT) {
                     tokens.push({ type, value, line, column });
                 }
