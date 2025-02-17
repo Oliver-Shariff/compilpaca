@@ -179,6 +179,15 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
     let finalInComment = inComment;
     let finalInQuote = inQuote;
     let missingEOP = false;
+    if (tokens[tokens.length-1].type != tokenType.EOP){
+        missingEOP = true;
+        tokens.push({
+            type: tokenType.EOP,
+            value: "$",
+            line: tokens.length > 0 ? tokens[tokens.length - 1].line : 1,
+            column: tokens.length > 0 ? tokens[tokens.length - 1].column + 1 : 1
+        });
+    }
 
     return { tokens, finalInComment, finalInQuote, missingEOP };
 
