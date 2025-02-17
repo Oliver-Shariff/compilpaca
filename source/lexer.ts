@@ -98,7 +98,7 @@ now we need to build a loop that looks through the input and:
 
 export function tokenize(input: string): Token[] {
     const tokens: Token[] = [];
-    let line = 1, column = 0, quoteOpen = false; //convention to start on line 1 (right?)
+    let line = 1, column = 0, inQuote = false; //convention to start on line 1 (right?)
 
     while (input.length > 0) {
         let matchFound = false;
@@ -112,20 +112,20 @@ export function tokenize(input: string): Token[] {
                 
                 let adjustedType = type;
                 let adjustedLog = log;
-                if (quoteOpen){
+                if (inQuote){
                     if(type == tokenType.ID){
                         adjustedType = tokenType.CHAR;
                     }
                     else if(type == tokenType.QUOTE){
-                        quoteOpen = false;
+                        inQuote = false;
                     }
                     else if(type != tokenType.SPACE){
                         adjustedType = tokenType.UNKNOWN;
                     }
                 }
-                else{
+                else{ //inQuote == false
                     if(type == tokenType.QUOTE){
-                        quoteOpen = true;
+                        inQuote = true;
                     }
                     else if(type == tokenType.SPACE){
                         adjustedType = tokenType.WHITESPACE; //if the quote is closed then spaces should be treated as whitespace (not displayed)
