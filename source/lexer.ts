@@ -88,7 +88,7 @@ now we need to build a loop that looks through the input and:
     return the array
 */
 
-export function tokenize(input: string): { tokens: Token[], finalInComment: boolean, finalInQuote: boolean, missingEOP: boolean } {
+export function tokenize(input: string): { tokens: Token[], finalInComment: boolean, finalInQuote: boolean,} {
     const tokens: Token[] = [];
     let line = 1, column = 0, inQuote = false, inComment = false; //convention to start on line 1 (right?)
 
@@ -178,9 +178,7 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
     }
     let finalInComment = inComment;
     let finalInQuote = inQuote;
-    let missingEOP = false;
     if (tokens[tokens.length-1].type != tokenType.EOP){
-        missingEOP = true;
         tokens.push({
             type: tokenType.EOP,
             value: "$",
@@ -189,6 +187,6 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
         });
     }
 
-    return { tokens, finalInComment, finalInQuote, missingEOP };
+    return { tokens, finalInComment, finalInQuote };
 
 }

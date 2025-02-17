@@ -14,9 +14,9 @@ function handleLexing() {
     const outputElement = document.getElementById("tokenOutput") as HTMLPreElement;
 
     const inputCode = inputElement.value;
-    const { tokens, finalInComment, finalInQuote, missingEOP } = tokenize(inputCode); 
+    const { tokens, finalInComment, finalInQuote, } = tokenize(inputCode);
 
-    const outputLog = formatTokens(tokens, finalInComment, finalInQuote, missingEOP);
+    const outputLog = formatTokens(tokens, finalInComment, finalInQuote);
     outputElement.textContent = outputLog;
 }
 /*
@@ -27,51 +27,83 @@ formatTokens() goal
     identify and count warnings
     count programs
 */
-function formatTokens(tokens: Token[], finalInComment, finalInQuote, missingEOP): string {
-    let errorCount = 0, programCount = 1, warnCount = 0;
-
-    let output = `INFO Lexer - Lexing program ${programCount}...\n`;
+function formatTokens(tokens: Token[], finalInComment: boolean, finalInQuote: boolean): string {
+    let errorCount = 0, warnCount = 0, programCount = 0;
+    let output = "";
+    let programTokens: Token[] = []; // Store tokens of the current program
 
     for (const token of tokens) {
         const { type, value, line, column } = token;
 
+        if (type === tokenType.EOP) {
+            programTokens.push(token);
+            // End of a program
+            programCount++;
+            output += `INFO Lexer - Lexing program ${programCount}...\n`;
+
+            // Process the current program
+            output += processProgram(programTokens, errorCount, warnCount, finalInComment, finalInQuote, true);//set this to true since we found EOP
+
+            // Reset counters for the next program
+            errorCount = 0;
+            warnCount = 0;
+            programTokens = []; // Start collecting for the next program
+        } else {
+            // Collect tokens for the current program
+            programTokens.push(token);
+        }
+    }
+
+    // Handle the last program if no explicit EOP is found
+    if (programTokens.length > 0) {
+        output += "this block actually ran";
+        programCount++;
+        output += `\n INFO Lexer - Lexing program ${programCount}...\n`;
+        output += processProgram(programTokens, errorCount, warnCount, finalInComment, finalInQuote, false);//false since tokens are left over with noe explicit EOP 
+    }
+    return output;
+}
+function processProgram(programTokens: Token[], errorCount: number, warnCount: number, finalInComment: boolean, finalInQuote: boolean, EOPfound: boolean): string {
+    let output = "";
+
+    for (const token of programTokens) {
+        const { type, value, line, column } = token;
+
         if (type === tokenType.UNKNOWN) {
-            //add text color change here later
             output += `ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
             errorCount++;
-        }
-
-        else if (type !== tokenType.COM_END && type !== tokenType.COM_START) {
+        } else if (type !== tokenType.COM_END && type !== tokenType.COM_START) {
             output += `INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} \n`;
         }
     }
-    
 
-
-    if (finalInComment == true) {
-        const lastIndex = findLastIndex(tokens, tokenType.COM_START);
+    if (finalInComment) {
+        const lastIndex = findLastIndex(programTokens, tokenType.COM_START);
         warnCount++;
-        output += `WARNING Lexer - Unterminated Comment starts at: ${tokens[lastIndex].line} COL: ${tokens[lastIndex].column} \n`;
+        output += `WARNING Lexer - Unterminated Comment starts at: ${programTokens[lastIndex].line} COL: ${programTokens[lastIndex].column} \n`;
     }
-    if (finalInQuote == true) {
-        const lastIndex = findLastIndex(tokens, tokenType.QUOTE);
+    if (finalInQuote) {
+        const lastIndex = findLastIndex(programTokens, tokenType.QUOTE);
         warnCount++;
-        output += `WARNING Lexer - Unterminated Quote starts at: ${tokens[lastIndex].line} COL: ${tokens[lastIndex].column} \n`
+        output += `WARNING Lexer - Unterminated Quote starts at: ${programTokens[lastIndex].line} COL: ${programTokens[lastIndex].column} \n`;
     }
-    if (missingEOP == true) {
+    if (EOPfound ===  false) {
         warnCount++;
         output += `WARNING Lexer - Missing EOP at end of file! \n`;
     }
 
     if (errorCount === 0) {
         output += `INFO Lexer - Lex completed with 0 errors and ${warnCount} warnings \n`;
-    }
-    else {
+        output += `\n`;
+    } else {
         output += `ERROR Lexer - Lex failed with ${errorCount} errors and ${warnCount} warnings \n`;
+        output += `\n`;
     }
 
     return output;
 }
+
+
 function findLastIndex(tokens: Token[], targetType: tokenType): number {
     for (let i = tokens.length - 1; i >= 0; i--) {
         if (tokens[i].type === targetType) {
