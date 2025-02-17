@@ -48,6 +48,21 @@ function formatTokens(tokens: Token[]): string{
             output += `INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} \n`;
         }
     }
+    
+    if(tokens[tokens.length -1].inComment == true){
+        for(let i = tokens.length; i < 0;){
+            if( tokens[i].inQuote == true){
+                i--;
+            }
+            else{
+                output += `WARNING UNTERMINATED COMMENT STARTING AT LINE: ${tokens[i].line} COL: ${tokens[i].column} \n`;
+            }
+        }
+    }
+
+    if(tokens[tokens.length -1].inQuote == true){
+        output += `WARNING UNTERMINATED STRING \n`;
+    }
 
     if(errorCount === 0){
         output += `INFO Lexer - Lex completed with 0 errors and ${warnCount} warnings`;
@@ -55,6 +70,8 @@ function formatTokens(tokens: Token[]): string{
     else{
         output += `ERROR Lexer - Lex failed with ${errorCount} errors and ${warnCount} warnings`;
     }
+
+
     return output;
 }
 

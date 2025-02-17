@@ -20,7 +20,7 @@ to do:
 	-add some boolFlags like inBrace, inQuotes, inBlock(?)
 	-implement warning handling
 
-Strings are not lexemmes so I should remove iit from the regex, instead detect quotes and identify each piece as a char or space then anything else until next quote as invalid symbols
+Strings are not lexemmes so I should remove it from the regex, instead detect quotes and identify each piece as a char or space then anything else until next quote as invalid symbols
 
 Lets treat comments like strings in that we should recognize the start and end seperately and anything in between will be transmuted to a comment
 we can even skip looping through regex def while inComment is true

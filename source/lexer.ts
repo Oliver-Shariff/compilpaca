@@ -1,13 +1,3 @@
-/*
-The below has been take from devNotes
-lexer.ts should also do the following:
-
-    define token structure (type, value, position (line and column?))
-    distinguish between tokens with RegEx formulas
-    take and input (test code) and 'tokenize' what it gets. ie use the structure and regex to assign what it reads as valid or invalid tokens
-    find errors and warnings
-    log the output accordingly
- */
 
 //using RegEx instead of brute force
 //enum for each TYPE of token, not each token itself
@@ -42,6 +32,7 @@ export interface Token {
     line: number;
     column: number;
     inQuote: boolean;
+    inComment: boolean;
 }
 
 /*
@@ -152,7 +143,7 @@ export function tokenize(input: string): Token[] {
                 }
                 //dont put comments or whitespace into token array
                 if (adjustedLog == true) {
-                    tokens.push({ type: adjustedType, value, line, column, inQuote });
+                    tokens.push({ type: adjustedType, value, line, column, inQuote, inComment });
                 }
                 //update position
                 const newLines = value.match(/\n/g);
@@ -172,7 +163,7 @@ export function tokenize(input: string): Token[] {
         if (!matchFound) {
             const unknownChar = input[0];
             if(inComment == false){
-                tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column, inQuote});
+                tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column, inQuote, inComment});
             }
 
             if (unknownChar == "\n") {
@@ -183,6 +174,7 @@ export function tokenize(input: string): Token[] {
             }
             input = input.slice(unknownChar.length);
         }
+    
     }
 
     return tokens;
