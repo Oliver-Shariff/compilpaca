@@ -145,7 +145,11 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
                 }
                 //dont put comments or whitespace into token array
                 if (adjustedLog == true) {
-                    tokens.push({ type: adjustedType, value, line, column});
+                    let adjustedValue = value;
+                    if(value == "\n"){
+                        adjustedValue = "newline char";
+                    }
+                    tokens.push({ type: adjustedType, value: adjustedValue, line, column});
                 }
                 //update position
                 const newLines = value.match(/\n/g);

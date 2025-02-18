@@ -17,7 +17,7 @@ function handleLexing() {
     const { tokens, finalInComment, finalInQuote, } = tokenize(inputCode);
 
     const outputLog = formatTokens(tokens, finalInComment, finalInQuote);
-    outputElement.textContent = outputLog;
+    outputElement.innerHTML = outputLog;
 }
 /*
 formatTokens() goal
@@ -39,7 +39,7 @@ function formatTokens(tokens: Token[], finalInComment: boolean, finalInQuote: bo
             programTokens.push(token);
             // End of a program
             programCount++;
-            output += `INFO Lexer - Lexing program ${programCount}...\n`;
+            output += `<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
 
             // Process the current program
             output += processProgram(programTokens, errorCount, warnCount, finalInComment, finalInQuote, true);//set this to true since we found EOP
@@ -57,7 +57,7 @@ function formatTokens(tokens: Token[], finalInComment: boolean, finalInQuote: bo
     // Handle the last program if no explicit EOP is found
     if (programTokens.length > 0) {
         programCount++;
-        output += `\nINFO Lexer - Lexing program ${programCount}...\n`;
+        output += `\n<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
         output += processProgram(programTokens, errorCount, warnCount, finalInComment, finalInQuote, false);//false since tokens are left over with no explicit EOP
     }
     return output;
@@ -69,33 +69,33 @@ function processProgram(programTokens: Token[], errorCount: number, warnCount: n
         const { type, value, line, column } = token;
 
         if (type === tokenType.UNKNOWN) {
-            output += `ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n`;
+            output += `<span class="error">ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n</span>`;
             errorCount++;
         } else if (type !== tokenType.COM_END && type !== tokenType.COM_START) {
-            output += `INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} \n`;
+            output += `<span class="info">INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} </span>\n`;
         }
     }
 
     if (finalInComment) {
         const lastIndex = findLastIndex(programTokens, tokenType.COM_START);
         warnCount++;
-        output += `WARNING Lexer - Unterminated Comment starts at: ${programTokens[lastIndex].line} COL: ${programTokens[lastIndex].column} \n`;
+        output += `<span class="warning">WARNING Lexer - Unterminated Comment starts at: ${programTokens[lastIndex].line} COL: ${programTokens[lastIndex].column} </span>\n`;
     }
     if (finalInQuote) {
         const lastIndex = findLastIndex(programTokens, tokenType.QUOTE);
         warnCount++;
-        output += `WARNING Lexer - Unterminated Quote starts at: ${programTokens[lastIndex].line} COL: ${programTokens[lastIndex].column} \n`;
+        output += `<span class="warning">WARNING Lexer - Unterminated Quote starts at: ${programTokens[lastIndex].line} COL: ${programTokens[lastIndex].column} </span>\n`;
     }
     if (EOPfound ===  false) {
         warnCount++;
-        output += `WARNING Lexer - Missing EOP at end of file! \n`;
+        output += `<span class="warning">WARNING Lexer - Missing EOP at end of file! <span>\n`;
     }
 
     if (errorCount === 0) {
-        output += `INFO Lexer - Lex completed with 0 errors and ${warnCount} warnings \n`;
+        output += `<span class="success">INFO Lexer - SUCCESS Lex completed with 0 errors and ${warnCount} warnings </span>\n`;
         output += `\n`;
     } else {
-        output += `ERROR Lexer - Lex failed with ${errorCount} errors and ${warnCount} warnings \n`;
+        output += `<span class="fail">ERROR Lexer - FAIL Lex failed with ${errorCount} errors and ${warnCount} warnings </span>\n`;
         output += `\n`;
     }
 
