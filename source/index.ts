@@ -69,9 +69,14 @@ function processProgram(programTokens: Token[], errorCount: number, warnCount: n
         const { type, value, line, column } = token;
 
         if (type === tokenType.UNKNOWN) {
-            output += `<span class="error">ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: ${value}\n</span>`;
+            output += `<span class="error">ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: [ ${value} ]\n</span>`;
             errorCount++;
-        } else if (type !== tokenType.COM_END && type !== tokenType.COM_START) {
+        }
+        else if(type === tokenType.INVALID){
+            output += `<span class="error">ERROR Lexer - Error on line:${line} col:${column} Invalid token inside string:[ ${value} ]only lowercase a-z allowed\n</span>`;
+            errorCount++;
+        }
+        else if (type !== tokenType.COM_END && type !== tokenType.COM_START) {
             output += `<span class="info">INFO Lexer - ${type}[ ${value} ] found at line:${line} col:${column} </span>\n`;
         }
     }

@@ -21,7 +21,8 @@ export enum tokenType {
     COM_START = "COM_START",
     COM_END = "COM_END",
     LPAREN = "LPAREN",
-    RPAREN = "RPAREN"
+    RPAREN = "RPAREN",
+    INVALID = "INVALID",
 
 }
 
@@ -67,7 +68,7 @@ const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
     { type: tokenType.KEYWORD, regex: /(int|string|boolean|print|while|if)/, log: true },
     { type: tokenType.BOOL, regex: /(true|false)/, log: true },
     { type: tokenType.ID, regex: /[a-z]/, log: true },
-    { type: tokenType.NUMBER, regex: /[0-9]+/, log: true }, //the grammar may not allow for a multi digit number
+    { type: tokenType.NUMBER, regex: /[0-9]/, log: true },
     { type: tokenType.CHAR, regex: /[a-z]/, log: true },
     { type: tokenType.QUOTE, regex: /"/, log: true },
     { type: tokenType.LPAREN, regex: /[(]/, log: true },
@@ -113,8 +114,8 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
                     else if(type == tokenType.QUOTE){
                         inQuote = false;
                     }
-                    else if(type !== tokenType.SPACE){
-                        adjustedType = tokenType.UNKNOWN;
+                    else if(type !== tokenType.SPACE){// spaces are not chars so I didn't want to call them that in the output
+                        adjustedType = tokenType.INVALID;//different from unknown for better error messages
                         adjustedLog = true;
                     }
                 }
@@ -122,6 +123,7 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
                 //strings should take higher precedence - that way we can print /**/  if we want to, just write your comment somehwere else, like a spot that makes sense..
                 //in this grammar the only things allowed within quotes are spaces and chars
                 //Still I think strings take higher precedence than comments,If a developer places a comment symbol inside a string I assume they were trying to print it - even if this language doesnt allow that
+                //this wayt they can get a better error message
                 else if(inComment){
                     if(type == tokenType.COM_END){
                         inComment = false;
