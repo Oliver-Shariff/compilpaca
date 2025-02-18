@@ -43,17 +43,17 @@ To see my thoughts and notes throughout this project you can read my commits, co
 
     {  
         int a = 0  
-        boolean flag = true  
-        string msg = "hello "  
+        boolean b = true  
+        string c = "hello "  
         
         if (a == 0) {  
-            print msg  
+            print c 
         }  
         
-        while (flag == true) {  
+        while (b == true) {  
             a = a + 1  
             if (a == 10) {  
-                flag = false  
+                b = false  
             }  
         }  
         
