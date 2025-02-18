@@ -22,6 +22,7 @@ export enum tokenType {
     LPAREN = "LPAREN",
     RPAREN = "RPAREN",
     INVALID = "INVALID",
+    INTOP = "INTOP",
 
 }
 
@@ -81,7 +82,9 @@ const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
     { type: tokenType.COM_END, regex: /\*\//, log: true },
     { type: tokenType.LBRACE, regex: /{/, log: true },
     { type: tokenType.RBRACE, regex: /}/, log: true },
+    { type: tokenType.INTOP, regex: /\+/, log: true },
 ]
+
 /*
 now we need to build a loop that looks through the input and:
     tracks line and column number

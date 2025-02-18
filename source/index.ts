@@ -97,10 +97,10 @@ function processProgram(programTokens: Token[], errorCount: number, warnCount: n
     }
 
     if (errorCount === 0) {
-        output += `<span class="success">INFO Lexer - SUCCESS Lex completed with 0 errors and ${warnCount} warnings </span>\n`;
+        output += `<span class="success">INFO Lexer - SUCCESS Lex completed with 0 errors and ${warnCount} warning(s) </span>\n`;
         output += `\n`;
     } else {
-        output += `<span class="fail">ERROR Lexer - FAIL Lex failed with ${errorCount} errors and ${warnCount} warnings </span>\n`;
+        output += `<span class="fail">ERROR Lexer - FAIL Lex failed with ${errorCount} error(s) and ${warnCount} warning(s) </span>\n`;
         output += `\n`;
     }
 
