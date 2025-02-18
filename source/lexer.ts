@@ -6,14 +6,13 @@ export enum tokenType {
     ID = "ID",
     NUMBER = "NUMBER",
     CHAR = "CHAR",
-    SYMBOL= "SYMBOL", // this inludes {}()
     WHITESPACE = "WHITESPACE", // SPACES AND NEWLINES
     ASSIGN = "ASSIGN",
     EQUALITY = "EQUALITY",
     BOOL = "BOOL",
     EOP = "EOP",
-    COMMENT = "COMMENT", // SHOULD I JUST LUMP THIS INTO WHITESPACE?
-    LBRACE = "LBRACE", // {} for open and closing will need to be recognized seperate from just symbol when they encapsulate the whole program and not just a statement list
+    COMMENT = "COMMENT",
+    LBRACE = "LBRACE",
     RBRACE = "RBRACE",
     UNKNOWN = "UNKNOWN",
     QUOTE = "QUOTE",
@@ -68,7 +67,7 @@ const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
     { type: tokenType.KEYWORD, regex: /(int|string|boolean|print|while|if)/, log: true },
     { type: tokenType.BOOL, regex: /(true|false)/, log: true },
     { type: tokenType.ID, regex: /[a-z]/, log: true },
-    { type: tokenType.NUMBER, regex: /[0-9]/, log: true },
+    { type: tokenType.NUMBER, regex: /[0-9]/, log: true },  
     { type: tokenType.CHAR, regex: /[a-z]/, log: true },
     { type: tokenType.QUOTE, regex: /"/, log: true },
     { type: tokenType.LPAREN, regex: /[(]/, log: true },
