@@ -11,7 +11,13 @@ Test cases:
 /*multiple strings with some missing quotes*/
 {intaa=1print("hello world)booleanbb=true}{intaa=1print("hello world)booleanbb=true}$
 ---------------------------------------------------------------------------------------------------------
+March 4th
 
+to do:
+	-Fix lexer (keywords inside strings should not throw errors)
+	-Start parser
+
+---------------------------------------------------------------------------------------------------------
 Feb 17th
 
 to do:

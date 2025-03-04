@@ -103,6 +103,11 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
         for (const { type, regex, log } of tokenRegex) { //loop through regex definitions
             const match = input.match(regex);
 
+            // Skip KEYWORD and BOOL definitions if inside a quote
+            if (inQuote && (type === tokenType.KEYWORD || type === tokenType.BOOL)) {
+                continue;
+            }
+
             if (match && match.index === 0) {
                 const value = match[0];
 
