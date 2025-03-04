@@ -68,7 +68,7 @@ const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
     { type: tokenType.KEYWORD, regex: /(int|string|boolean|print|while|if)/, log: true },
     { type: tokenType.BOOL, regex: /(true|false)/, log: true },
     { type: tokenType.ID, regex: /[a-z]/, log: true },
-    { type: tokenType.NUMBER, regex: /[0-9]/, log: true },  
+    { type: tokenType.NUMBER, regex: /[0-9]/, log: true },
     { type: tokenType.CHAR, regex: /[a-z]/, log: true },
     { type: tokenType.QUOTE, regex: /"/, log: true },
     { type: tokenType.LPAREN, regex: /[(]/, log: true },
@@ -93,9 +93,9 @@ now we need to build a loop that looks through the input and:
     return the array
 */
 
-export function tokenize(input: string): { tokens: Token[], finalInComment: boolean, finalInQuote: boolean,} {
+export function tokenize(input: string, line: number, column: number): { tokens: Token[], finalInComment: boolean, finalInQuote: boolean, remainingInput: string, nextLine: number, nextColumn: number } {
     const tokens: Token[] = [];
-    let line = 1, column = 0, inQuote = false, inComment = false; //convention to start on line 1 (right?)
+    let inQuote = false, inComment = false;
 
     while (input.length > 0) {
         let matchFound = false;
@@ -111,17 +111,17 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
             if (match && match.index === 0) {
                 const value = match[0];
 
-                
+
                 let adjustedType = type;
                 let adjustedLog = log;
-                if (inQuote){
-                    if(type == tokenType.ID){
+                if (inQuote) {
+                    if (type == tokenType.ID) {
                         adjustedType = tokenType.CHAR;
                     }
-                    else if(type == tokenType.QUOTE){
+                    else if (type == tokenType.QUOTE) {
                         inQuote = false;
                     }
-                    else if(type !== tokenType.SPACE){// spaces are not chars so I didn't want to call them that in the output
+                    else if (type !== tokenType.SPACE) {// spaces are not chars so I didn't want to call them that in the output
                         adjustedType = tokenType.INVALID;//different from unknown for better error messages
                         adjustedLog = true;
                     }
@@ -131,8 +131,8 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
                 //in this grammar the only things allowed within quotes are spaces and chars
                 //Still I think strings take higher precedence than comments,If a developer places a comment symbol inside a string I assume they were trying to print it - even if this language doesnt allow that
                 //this wayt they can get a better error message
-                else if(inComment){
-                    if(type == tokenType.COM_END){
+                else if (inComment) {
+                    if (type == tokenType.COM_END) {
                         inComment = false;
                     }
                     else {
@@ -140,25 +140,34 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
                         adjustedLog = false;
                     }
                 }
-                else{ //inQuote == false && inComment == false
-                    if(type == tokenType.QUOTE){
+                else { //inQuote == false && inComment == false
+                    if (type == tokenType.QUOTE) {
                         inQuote = true;
                     }
-                    else if(type == tokenType.COM_START){
+                    else if (type == tokenType.COM_START) {
                         inComment = true;
                     }
-                    else if(type == tokenType.SPACE){
+                    else if (type == tokenType.SPACE) {
                         adjustedType = tokenType.WHITESPACE; //if the quote is closed then spaces should be treated as whitespace (not displayed)
                         adjustedLog = false;
                     }
                 }
                 //dont put comments or whitespace into token array
-                if (adjustedLog == true) {
-                    let adjustedValue = value;
-                    if(value == "\n"){
-                        adjustedValue = "newline char";
+                if (adjustedLog) {
+                    let adjustedValue = value === "\n" ? "newline char" : value;
+                    tokens.push({ type: adjustedType, value: adjustedValue, line, column });
+
+                    // Stop tokenizing when EOP is found
+                    if (adjustedType === tokenType.EOP) {
+                        return {
+                            tokens,
+                            finalInComment: inComment,
+                            finalInQuote: inQuote,
+                            remainingInput: input.slice(value.length),
+                            nextLine: line,
+                            nextColumn: column + value.length
+                        };
                     }
-                    tokens.push({ type: adjustedType, value: adjustedValue, line, column});
                 }
                 //update position
                 const newLines = value.match(/\n/g);
@@ -177,8 +186,8 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
         }
         if (!matchFound) {
             const unknownChar = input[0];
-            if(inComment == false){
-                tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column});
+            if (inComment == false) {
+                tokens.push({ type: tokenType.UNKNOWN, value: unknownChar, line, column });
             }
 
             if (unknownChar == "\n") {
@@ -189,7 +198,7 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
             }
             input = input.slice(unknownChar.length);
         }
-    
+
     }
     let finalInComment = inComment;
     let finalInQuote = inQuote;
@@ -204,6 +213,6 @@ export function tokenize(input: string): { tokens: Token[], finalInComment: bool
         });
     }*/
 
-    return { tokens, finalInComment, finalInQuote };
+    return { tokens, finalInComment: inComment, finalInQuote: inQuote, remainingInput: "", nextLine: line, nextColumn: column };
 
 }

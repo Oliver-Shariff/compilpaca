@@ -14,8 +14,15 @@ Test cases:
 March 4th
 
 to do:
-	-Fix lexer (keywords inside strings should not throw errors)
-	-Start parser
+	-Fix lexer
+		-Completed (keywords inside strings should not throw errors)
+		-tokenize funciton should consume one program at a time (determined by EOP) and produce a different [] for each
+
+	-Parsing to do
+		-write derivation rules
+		-loop through them against tokens[] and backtrack appropriately to match token stream
+		-consume tokens when they match derivation
+		-print output to user
 
 ---------------------------------------------------------------------------------------------------------
 Feb 17th

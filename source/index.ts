@@ -13,12 +13,30 @@ function handleLexing() {
     const inputElement = document.getElementById("codeInput") as HTMLTextAreaElement;
     const outputElement = document.getElementById("tokenOutput") as HTMLPreElement;
 
-    const inputCode = inputElement.value;
-    const { tokens, finalInComment, finalInQuote, } = tokenize(inputCode);
+    let inputCode = inputElement.value.trim();
+    let line = 1, column = 0;
+    let outputLog = "";
+    let programCount = 0;
 
-    const outputLog = formatTokens(tokens, finalInComment, finalInQuote);
+    while (inputCode.length > 0) {
+        const { tokens, finalInComment, finalInQuote, remainingInput, nextLine, nextColumn } = tokenize(inputCode, line, column);
+
+        if (tokens.length > 0) {
+            programCount++;
+            outputLog += `<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
+            outputLog += formatTokens(tokens, finalInComment, finalInQuote);
+        }
+
+        inputCode = remainingInput;
+        line = nextLine;
+        column = nextColumn;
+        console.log(tokens)
+    }
+
+
     outputElement.innerHTML = outputLog;
 }
+
 /*
 formatTokens() goal
     take in tokens[] from tokenize function
@@ -37,10 +55,7 @@ function formatTokens(tokens: Token[], finalInComment: boolean, finalInQuote: bo
 
         if (type === tokenType.EOP) {
             programTokens.push(token);
-            // End of a program
-            programCount++;
-            output += `<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
-
+            
             // Process the current program
             output += processProgram(programTokens, errorCount, warnCount, finalInComment, finalInQuote, true);//set this to true since we found EOP
 
