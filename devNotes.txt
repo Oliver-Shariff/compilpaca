@@ -12,9 +12,12 @@ March 13th
 
 to do:
 	-create helper funtions in parse.ts to enable matching, consuming, looking ahead, and possibly backtracking through tokens array
-	-** I can do this with a class based approach
-	-Complete derivations as nested function calls
-
+		** I can do this with a class based approach
+	-remaining parse methods
+	-output message on sucessful parse not just errors
+	-show lexer output even if parse fails
+	-display parse output on page (only in console at the moment)
+	-make CST
 
 ---------------------------------------------------------------------------------------------------------
 March 4th
