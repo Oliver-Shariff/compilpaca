@@ -1,4 +1,5 @@
 import { tokenize, Token, tokenType } from './lexer.js';
+import {parse} from './parse.js'
 /*
 This file should delliver JS to index.html
 tasks:
@@ -31,6 +32,8 @@ function handleLexing() {
         line = nextLine;
         column = nextColumn;
         console.log(tokens) // I can call the parse tokens function here
+        const test = parse(tokens);
+        console.log("parse test: ", JSON.stringify(test));
     }
 
 
