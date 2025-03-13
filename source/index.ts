@@ -30,7 +30,7 @@ function handleLexing() {
         inputCode = remainingInput;
         line = nextLine;
         column = nextColumn;
-        console.log(tokens)
+        console.log(tokens) // I can call the parse tokens function here
     }
 
 

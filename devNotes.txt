@@ -1,15 +1,21 @@
 
 QUESTIONS:
 
-Does the grammar allow for multi digit numbers? - NO
+
+
 ---------------------------------------------------------------------------------------------------------
 
-Test cases:
-/*lex without spaces*/
-{intaa=1print(a)booleanbb=true}$
+Lex test cases in ReadME. Add new parse test cases here during development
 
-/*multiple strings with some missing quotes*/
-{intaa=1print("hello world)booleanbb=true}{intaa=1print("hello world)booleanbb=true}$
+---------------------------------------------------------------------------------------------------------
+March 13th
+
+to do:
+	-create helper funtions in parse.ts to enable matching, consuming, looking ahead, and possibly backtracking through tokens array
+	-** I can do this with a class based approach
+	-Complete derivations as nested function calls
+
+
 ---------------------------------------------------------------------------------------------------------
 March 4th
 
@@ -20,10 +26,10 @@ to do:
 
 	-Parsing to do
 		-write derivation rules
+			-as nested functions
 		-loop through them against tokens[] and backtrack appropriately to match token stream
 		-consume tokens when they match derivation
 		-print output to user
-
 ---------------------------------------------------------------------------------------------------------
 Feb 17th
 

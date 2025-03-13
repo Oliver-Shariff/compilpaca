@@ -10,7 +10,7 @@ In its current state this program performs lexical analysis on input code. Per p
 
 To see my thoughts and notes throughout this project you can read my commits, comments, and **devNotes.txt**.
 
-## Here are some test cases:
+## Here are some LEX test cases:
 
 ### lex without spaces:
 
