@@ -1,13 +1,14 @@
 import { tokenize, Token, tokenType } from './lexer.js';
-import { Tree } from './treeDemo.js'; // Import the Tree class
-
+import { Tree } from './tree.js'; // Import the Tree class
 class Parser {
     private tokens: Token[];
     private current: number = 0;
     private log: string[] = []; // Store logs here
+    private cst: Tree;
 
     constructor(tokens: Token[]) {
         this.tokens = tokens;
+        this.cst = new Tree();
     }
 
 
@@ -56,7 +57,7 @@ class Parser {
     private consume(type: tokenType, message: string): Token {
         if (this.check(type)) {
             const token = this.advance();
-            //this.logMessage("info", `INFO Parser - Consumed token: ${token.type}, value: "${token.value}"`);
+            this.cst.addNode(token.value, "leaf");
             return token;
         }
         throw new Error(message);
@@ -68,10 +69,11 @@ class Parser {
     public parse(): { cst: any, logs: string[], pass: boolean } {
         try {
             this.logMessage("info", "INFO Parser - Starting parsing...");
-            const cst = this.parseProgram();
+            this.cst.addNode("Program", "branch");
+            this.parseProgram();
             this.logMessage("success", "INFO Parser - Successfully parsed program!\n");
-            this.logMessage('info', '\n');
-            return { cst, logs: this.log, pass: true };
+            this.cst.endChildren();
+            return { cst: this.cst, logs: this.log, pass: true };
         } catch (error) {
             this.logMessage("error", `ERROR Parser - ${error.message}`);
             this.logMessage('fail', 'FAIL Parser - failed with 1 error');
@@ -79,127 +81,122 @@ class Parser {
         }
     }
 
-    private parseProgram(): any {
+    private parseProgram(){
         this.logMessage("debug", "DEBUG Parser - Parsing Program")
-        const body = this.parseBlock();
+        this.cst.addNode("Block", "branch");
+        this.parseBlock();
+        this.cst.endChildren();
         this.consume(tokenType.EOP, 'Expected end of program ($)');
-        return { type: 'Program', body };
     }
 
-    private parseBlock(): any {
+    private parseBlock(){
         this.logMessage("debug", "DEBUG Parser - Parsing block")
         this.consume(tokenType.LBRACE, 'Expected { at start of block');
-        const statements = this.parseStatementList();
+        this.cst.addNode("StatementList", "branch");
+        this.parseStatementList();
+        this.cst.endChildren();
         this.consume(tokenType.RBRACE, 'Expected } at end of block');
-        return { type: 'Block', body: statements };
-
+        
     }
 
-    private parseStatementList(): any {
-        this.logMessage("debug", "DEBUG Parser - Parsing statement list")
-        const statements = [];
+    private parseStatementList() {
         while (!this.check(tokenType.RBRACE) && !this.isAtEnd()) {
-            statements.push(this.parseStatement());
+            this.parseStatement();
         }
-        //parse statements and push into array
-        return statements;
     }
-    private parseStatement(): any {
+
+    private parseStatement(){
         //we can see what type of statement we have based on the first token
-        this.logMessage("debug", "DEBUG Parser - Parsing statement")
-        if (this.peek().type === tokenType.KEYWORD) {
-            this.consume(tokenType.KEYWORD, 'Expected keyword')
-
-            switch (this.previous().value) {
-                case 'print':
-                    return this.parsePrintStatement();
-                case 'while':
-                    return this.parseWhileStatement();
-                case 'if':
-                    return this.parseIfStatement();
-                case 'int':
-                case 'string':
-                case 'boolean':
-                    return this.parseVarDecl();
+        this.logMessage("debug", "DEBUG Parser - Parsing Statement");
+        if (this.check(tokenType.KEYWORD)) {
+            let keyword = this.advance().value;
+            this.cst.addNode(keyword, "branch");
+            switch (keyword) {
+                case "print":
+                    this.parsePrintStatement();
+                    break;
+                case "while":
+                    this.parseWhileStatement();
+                    break;
+                case "if":
+                    this.parseIfStatement();
+                    break;
+                case "int":
+                case "string":
+                case "boolean":
+                    this.parseVarDecl();
+                    break;
             }
+            this.cst.endChildren();
+        } else if (this.match(tokenType.ID)) {
+            this.cst.addNode("AssignmentStatement", "branch");
+            this.parseAssignmentStatement();
+            this.cst.endChildren();
+        } else if (this.check(tokenType.LBRACE)) {
+            this.parseBlock();
+        } else {
+            this.logMessage("error", `Unexpected token: ${this.peek().value}`);
         }
-        if (this.match(tokenType.ID)) {
-            return this.parseAssignmentStatement();
-        }
-        if (this.check(tokenType.LBRACE)) {
-            return this.parseBlock();
-        }
-        this.logMessage('error', `Unexpected token: ${this.peek().value}`);
-        return null;
     }
 
-    private parsePrintStatement(): any {
-        this.logMessage("debug", "DEBUG Parser - Parsing print statement")
-        this.consume(tokenType.LPAREN, 'Expected ( after print');
-        const expr = this.parseExpression();
-        this.consume(tokenType.RPAREN, 'Expected ) after expression');
-        return { type: 'PrintStatement', expression: expr };
+    private parsePrintStatement() {
+        this.consume(tokenType.LPAREN, "Expected ( after print");
+        this.cst.addNode("Expression", "branch");
+        this.parseExpression();
+        this.cst.endChildren();
+        this.consume(tokenType.RPAREN, "Expected ) after expression");
     }
 
-    private parseAssignmentStatement(): any {
-        this.logMessage("debug", "DEBUG Parser - Parsing assignment statement")
-        const id = this.previous();
-        this.consume(tokenType.ASSIGN, 'Expected = in assignment');
-        const expr = this.parseExpression();
-        return { type: 'AssignmentStatement', id, expression: expr };
+    private parseAssignmentStatement() {
+        this.consume(tokenType.ASSIGN, "Expected = in assignment");
+        this.cst.addNode("Expression", "branch");
+        this.parseExpression();
+        this.cst.endChildren();
     }
 
-    private parseVarDecl(): any {
-        this.logMessage("debug", "DEBUG Parser - Parsing var decl")
-        const type = this.previous();
-        const id = this.consume(tokenType.ID, 'Expected variable name');
-        return { type: 'VarDecl', varType: type, id };
+    private parseVarDecl() {
+        const id = this.consume(tokenType.ID, "Expected variable name");
+        this.cst.addNode(`VarDecl (${id.value})`, "leaf");
     }
 
-    private parseWhileStatement(): any {
-        this.logMessage("debug", "DEBUG Parser - Parsing while statement")
-        const condition = this.parseBooleanExpr();
-        const body = this.parseBlock();
-        return { type: 'WhileStatement', condition, body };
+    private parseWhileStatement() {
+        this.cst.addNode("WhileStatement", "branch");
+        this.parseBooleanExpr();
+        this.parseBlock();
+        this.cst.endChildren();
     }
 
-    private parseIfStatement(): any {
-        this.logMessage("debug", "DEBUG Parser - Parsing if statement")
-        const condition = this.parseBooleanExpr();
-        const body = this.parseBlock();
-        return { type: 'IfStatement', condition, body };
+    private parseIfStatement() {
+        this.cst.addNode("IfStatement", "branch");
+        this.parseBooleanExpr();
+        this.parseBlock();
+        this.cst.endChildren();
     }
 
-    private parseExpression(): any {
-        this.logMessage("debug", "DEBUG Parser - Parsing expression")
+    private parseExpression() {
         if (this.match(tokenType.NUMBER)) {
-            return this.parseIntExpr();
+            this.cst.addNode("IntExpression", "leaf");
+        } else if (this.match(tokenType.QUOTE)) {
+            this.parseStringExpr();
+        } else if (this.match(tokenType.BOOL)) {
+            this.cst.addNode("BooleanLiteral", "leaf");
+        } else if (this.match(tokenType.LPAREN)) {
+            this.parseBooleanExpr();
+        } else if (this.match(tokenType.ID)) {
+            this.cst.addNode("Identifier", "leaf");
+        } else {
+            this.logMessage("error", `Unexpected token: ${this.peek().value}`);
         }
-        if (this.match(tokenType.QUOTE)) {
-            return this.parseStringExpr();
-        }
-        if (this.match(tokenType.BOOL)) {
-            return { type: 'BooleanLiteral', value: this.previous().value };
-        }
-        if (this.match(tokenType.LPAREN)) {
-            return this.parseBooleanExpr();
-        }
-        if (this.match(tokenType.ID)) {
-            return { type: 'Identifier', name: this.previous().value };
-        }
-        this.logMessage('error', `Unexpected token: ${this.peek().value}`);
-        return null;
     }
 
-    private parseIntExpr(): any {
-        this.logMessage("debug", "DEBUG Parser - Parsing int expression")
-        let left = { type: 'Literal', value: this.previous().value };
-        if (this.match(tokenType.INTOP)) {
-            const operator = this.previous();
-            const right = this.parseExpression();
-            return { type: 'BinaryExpression', left, operator, right };
-        }
-        return left;
+    private parseBooleanExpr() {
+        this.consume(tokenType.LPAREN, "Expected ( in boolean expression");
+        this.cst.addNode("BooleanExpression", "branch");
+        this.parseExpression();
+        this.consume(tokenType.EQUALITY, "Expected == or != in boolean expression");
+        this.parseExpression();
+        this.consume(tokenType.RPAREN, "Expected ) in boolean expression");
+        this.cst.endChildren();
     }
 
     private parseStringExpr(): any {
@@ -215,23 +212,9 @@ class Parser {
         }
         return { type: 'StringLiteral', value: chars.join('') };
     }
-
-    private parseBooleanExpr(): any {
-        this.logMessage("debug", "DEBUG Parser - Parsing bool expression")
-        if (this.match(tokenType.BOOL)) {
-            return { type: 'BooleanLiteral', value: this.previous().value };
-        }
-        this.consume(tokenType.LPAREN, 'Expected ( in boolean expression');
-        const left = this.parseExpression();
-        const operator = this.consume(tokenType.EQUALITY, 'Expected == or != in boolean expression');
-        const right = this.parseExpression();
-        this.consume(tokenType.RPAREN, 'Expected ) in boolean expression');
-        return { type: 'BooleanExpression', left, operator, right };
-    }
-
 }//class boundary
 
-export function parse(tokens: Token[]): { cst: any, logs: string[] } {
+export function parse(tokens: Token[]): { cst: Tree, logs: string[], pass: boolean } {
     const parser = new Parser(tokens);
     return parser.parse();
 }

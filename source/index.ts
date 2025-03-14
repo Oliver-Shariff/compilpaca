@@ -28,24 +28,25 @@ function handleLexing() {
             const lexOutput = formatTokens(tokens, finalInComment, finalInQuote);
             outputLog += lexOutput;
             // Call the parser here after lexing
-            if(lexOutput.includes("ERROR Lexer")){
+            if (lexOutput.includes("ERROR Lexer")) {
                 outputLog += `<span class="fail">Parser - Skipping Parse due to lexing errors.</span>\n`;
             }
-            else{
-                const { cst, logs, pass} = parse(tokens);
+            else {
+                const { cst, logs, pass } = parse(tokens);
                 console.log(`program : ${programCount} pass state is ${pass}`)
                 // Append parser logs to output
                 outputLog += logs.join("\n");
-    
-                if (pass && cst) {
-                    outputLog += `<span class="info">INFO Parser - CST for program ${programCount}:</span>\n`;
 
+                if (pass && cst) {
+                    outputLog += `<span class="success">INFO Parser - Concrete Syntax Tree:</span>\n`;
+                    outputLog += `<code>${cst.toString()}</code>\n`;
                 } else {
-                    console.error("Parsing failed.");
+                    outputLog += `<span class="error">ERROR Parser - Parsing failed. No CST generated.</span>\n`;
+
                 }
 
             }
-            
+
         }
 
         inputCode = remainingInput;
@@ -120,7 +121,7 @@ function processProgram(programTokens: Token[], errorCount: number, warnCount: n
     }
 
     if (finalInComment) {
-        const lastIndex = programTokens.length-1;
+        const lastIndex = programTokens.length - 1;
         warnCount++;
         output += `<span class="warning">WARNING Lexer - Unterminated Comment starts at: ${programTokens[lastIndex].line} COL: ${programTokens[lastIndex].column} </span>\n`;
     }
