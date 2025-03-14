@@ -1,4 +1,5 @@
 import { tokenize, Token, tokenType } from './lexer.js';
+import { Tree } from './treeDemo.js'; // Import the Tree class
 
 class Parser {
     private tokens: Token[];
@@ -64,15 +65,17 @@ class Parser {
 
 
     /*Parsing methods */
-    public parse(): { cst: any, logs: string[] } {
+    public parse(): { cst: any, logs: string[], pass: boolean } {
         try {
             this.logMessage("info", "INFO Parser - Starting parsing...");
             const cst = this.parseProgram();
-            this.logMessage("success", "INFO Parser - Successfully parsed program!");
-            return { cst, logs: this.log };
+            this.logMessage("success", "INFO Parser - Successfully parsed program!\n");
+            this.logMessage('info', '\n');
+            return { cst, logs: this.log, pass: true };
         } catch (error) {
-            this.logMessage("fail", `ERROR Parser - ${error.message}`);
-            return { cst: null, logs: this.log };
+            this.logMessage("error", `ERROR Parser - ${error.message}`);
+            this.logMessage('fail', 'FAIL Parser - failed with 1 error');
+            return { cst: null, logs: this.log, pass: false };
         }
     }
 

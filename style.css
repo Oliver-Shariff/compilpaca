@@ -7,6 +7,9 @@
 .info {
     color: rgb(15, 15, 15);
 }
+.debug {
+    color: rgb(0, 2, 136);
+}
 .success{
     color: green;
     font-weight: bold;

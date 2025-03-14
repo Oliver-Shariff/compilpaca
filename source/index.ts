@@ -25,18 +25,25 @@ function handleLexing() {
         if (tokens.length > 0) {
             programCount++;
             outputLog += `<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
-            outputLog += formatTokens(tokens, finalInComment, finalInQuote);
+            const lexOutput = formatTokens(tokens, finalInComment, finalInQuote);
+            outputLog += lexOutput;
             // Call the parser here after lexing
-            
-            const { cst, logs } = parse(tokens);
+            if(lexOutput.includes("ERROR Lexer")){
+                outputLog += `<span class="fail">Parser - Skipping Parse due to lexing errors.</span>\n`;
+            }
+            else{
+                const { cst, logs, pass} = parse(tokens);
+                console.log(`program : ${programCount} pass state is ${pass}`)
+                // Append parser logs to output
+                outputLog += logs.join("\n");
+    
+                if (pass && cst) {
+                    outputLog += `<span class="info">INFO Parser - CST for program ${programCount}:</span>\n`;
 
-            // Append parser logs to output
-            outputLog += logs.join("\n");
+                } else {
+                    console.error("Parsing failed.");
+                }
 
-            if (cst) {
-                console.log("Parsed CST:", cst);
-            } else {
-                console.error("Parsing failed.");
             }
             
         }
@@ -50,6 +57,8 @@ function handleLexing() {
 
     outputElement.innerHTML = outputLog;
 }
+
+
 
 /*
 formatTokens() goal

@@ -211,7 +211,8 @@ export function tokenize(input: string, line: number, column: number): { tokens:
             line: tokens.length > 0 ? tokens[tokens.length - 1].line : 1,
             column: tokens.length > 0 ? tokens[tokens.length - 1].column + 1 : 1
         });
-    }*/
+    }
+        */
 
     return { tokens, finalInComment: inComment, finalInQuote: inQuote, remainingInput: "", nextLine: line, nextColumn: column };
 
