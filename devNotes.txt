@@ -16,9 +16,12 @@ to do:
 	-remaining parse methods
 	-output message on sucessful parse not just errors
 	-show lexer output even if parse fails
-	-display parse output on page (only in console at the moment)
 	-make CST
-
+	-Comments breaker parser
+	
+	-display parse output on page (only in console at the moment)
+		instead of throwing errors lets creates a message and a log function that can be returned with the parser call
+	
 ---------------------------------------------------------------------------------------------------------
 March 4th
 

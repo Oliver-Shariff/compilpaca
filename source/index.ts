@@ -1,5 +1,5 @@
 import { tokenize, Token, tokenType } from './lexer.js';
-import {parse} from './parse.js'
+import { parse } from './parse.js'
 /*
 This file should delliver JS to index.html
 tasks:
@@ -26,14 +26,23 @@ function handleLexing() {
             programCount++;
             outputLog += `<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
             outputLog += formatTokens(tokens, finalInComment, finalInQuote);
+            // Call the parser here after lexing
+            const { cst, logs } = parse(tokens);
+
+            // Append parser logs to output
+            outputLog += logs.join("\n");
+
+            if (cst) {
+                console.log("Parsed CST:", cst);
+            } else {
+                console.error("Parsing failed.");
+            }
         }
 
         inputCode = remainingInput;
         line = nextLine;
         column = nextColumn;
         console.log(tokens) // I can call the parse tokens function here
-        const test = parse(tokens);
-        console.log("parse test: ", JSON.stringify(test));
     }
 
 
@@ -58,7 +67,7 @@ function formatTokens(tokens: Token[], finalInComment: boolean, finalInQuote: bo
 
         if (type === tokenType.EOP) {
             programTokens.push(token);
-            
+
             // Process the current program
             output += processProgram(programTokens, errorCount, warnCount, finalInComment, finalInQuote, true);//set this to true since we found EOP
 
@@ -90,7 +99,7 @@ function processProgram(programTokens: Token[], errorCount: number, warnCount: n
             output += `<span class="error">ERROR Lexer - Error on line:${line} col:${column} Unrecognized token: [ ${value} ]\n</span>`;
             errorCount++;
         }
-        else if(type === tokenType.INVALID){
+        else if (type === tokenType.INVALID) {
             output += `<span class="error">ERROR Lexer - Error on line:${line} col:${column} Invalid token inside string:[ ${value} ]only lowercase a-z allowed\n</span>`;
             errorCount++;
         }
@@ -109,7 +118,7 @@ function processProgram(programTokens: Token[], errorCount: number, warnCount: n
         warnCount++;
         output += `<span class="warning">WARNING Lexer - Unterminated Quote starts at: ${programTokens[lastIndex].line} COL: ${programTokens[lastIndex].column} </span>\n`;
     }
-    if (EOPfound ===  false) {
+    if (EOPfound === false) {
         warnCount++;
         output += `<span class="warning">WARNING Lexer - Missing EOP at end of file! <span>\n`;
     }
