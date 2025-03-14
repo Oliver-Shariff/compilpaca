@@ -27,6 +27,7 @@ function handleLexing() {
             outputLog += `<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
             outputLog += formatTokens(tokens, finalInComment, finalInQuote);
             // Call the parser here after lexing
+            
             const { cst, logs } = parse(tokens);
 
             // Append parser logs to output
@@ -37,6 +38,7 @@ function handleLexing() {
             } else {
                 console.error("Parsing failed.");
             }
+            
         }
 
         inputCode = remainingInput;
@@ -109,7 +111,7 @@ function processProgram(programTokens: Token[], errorCount: number, warnCount: n
     }
 
     if (finalInComment) {
-        const lastIndex = findLastIndex(programTokens, tokenType.COM_START);
+        const lastIndex = programTokens.length-1;
         warnCount++;
         output += `<span class="warning">WARNING Lexer - Unterminated Comment starts at: ${programTokens[lastIndex].line} COL: ${programTokens[lastIndex].column} </span>\n`;
     }

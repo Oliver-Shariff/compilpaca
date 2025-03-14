@@ -78,8 +78,8 @@ const tokenRegex: { type: tokenType; regex: RegExp; log: boolean; }[] = [
     { type: tokenType.EQUALITY, regex: /==|!=/, log: true }, //this needs to come before the assign token
     { type: tokenType.ASSIGN, regex: /=/, log: true },
     { type: tokenType.EOP, regex: /\$/, log: true }, //$ is a special char in regex so we need the escape slash
-    { type: tokenType.COM_START, regex: /\/\*/, log: true },
-    { type: tokenType.COM_END, regex: /\*\//, log: true },
+    { type: tokenType.COM_START, regex: /\/\*/, log: false },
+    { type: tokenType.COM_END, regex: /\*\//, log: false },
     { type: tokenType.LBRACE, regex: /{/, log: true },
     { type: tokenType.RBRACE, regex: /}/, log: true },
     { type: tokenType.INTOP, regex: /\+/, log: true },

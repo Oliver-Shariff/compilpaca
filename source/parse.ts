@@ -55,7 +55,7 @@ class Parser {
     private consume(type: tokenType, message: string): Token {
         if (this.check(type)) {
             const token = this.advance();
-            this.logMessage("info", `INFO Parser - Consumed token: ${token.type}, value: "${token.value}"`);
+            //this.logMessage("info", `INFO Parser - Consumed token: ${token.type}, value: "${token.value}"`);
             return token;
         }
         throw new Error(message);

@@ -21,6 +21,11 @@ to do:
 	
 	-display parse output on page (only in console at the moment)
 		instead of throwing errors lets creates a message and a log function that can be returned with the parser call
+
+	-messages are being displayed to user properly
+	-ok I've been combing the output of the CST parse
+	-lets seperate these clearly. I don't want to show consumed tokens in the parse, only the tree
+	
 	
 ---------------------------------------------------------------------------------------------------------
 March 4th
