@@ -1,5 +1,6 @@
 import { tokenize, Token, tokenType } from './lexer.js';
 import { parse } from './parse.js'
+import { Tree } from './tree.js'; // Import the Tree class
 /*
 This file should delliver JS to index.html
 tasks:
@@ -24,7 +25,7 @@ function handleLexing() {
 
         if (tokens.length > 0) {
             programCount++;
-            outputLog += `<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
+            outputLog += `\n<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
             const lexOutput = formatTokens(tokens, finalInComment, finalInQuote);
             outputLog += lexOutput;
             // Call the parser here after lexing
@@ -38,8 +39,9 @@ function handleLexing() {
                 outputLog += logs.join("\n");
 
                 if (pass && cst) {
-                    outputLog += `<span class="success">INFO Parser - Concrete Syntax Tree:</span>\n`;
-                    outputLog += `<code>${cst.toString()}</code>\n`;
+                    outputLog += `\n<span class="info">INFO Parser - Concrete Syntax Tree:</span>\n`;
+                    outputLog += cst.toString()+ "\n" ;
+                    console.log(cst);
                 } else {
                     outputLog += `<span class="error">ERROR Parser - Parsing failed. No CST generated.</span>\n`;
 

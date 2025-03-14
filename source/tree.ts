@@ -1,3 +1,11 @@
+//-----------------------------------------
+// treeDemo.js
+//
+// By Alan G. Labouseur, based on the 2009
+// work by Michael Ardizzone and Tim Smith.
+
+//This has been altered to a typescript file using AI
+//-----------------------------------------
 class TreeNode {
     name: string;
     children: TreeNode[];
