@@ -6,7 +6,7 @@
 # HEY ALAN - PLEASE GRADE THE MAIN BRANCH
 
 
-In its current state this program performs lexical analysis on input code. Per professor's request node is not comitted. However a CORS issue may occur if opening index.html in the browser. I use the live server feature in VSCode to avoid this.
+In its current state this program performs lexical analysis and parsing on input code. Per professor's request node is not comitted. However a CORS issue may occur if opening index.html in the browser. I use the live server feature in VSCode to avoid this.
 
 To see my thoughts and notes throughout this project you can read my commits, comments, and **devNotes.txt**.
 
