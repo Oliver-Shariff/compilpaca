@@ -35,11 +35,12 @@ function handleLexing() {
             else {
                 const { cst, logs, pass } = parse(tokens);
                 console.log(`program : ${programCount} pass state is ${pass}`)
+                outputLog += `\n<span class="info">INFO Parser - Parsing program ${programCount}...</span>\n`;
                 // Append parser logs to output
                 outputLog += logs.join("\n");
 
                 if (pass && cst) {
-                    outputLog += `\n<span class="info">INFO Parser - Concrete Syntax Tree:</span>\n`;
+                    outputLog += `\n<span class="info">INFO Parser - Concrete Syntax Tree Program ${programCount}:</span>\n`;
                     outputLog += cst.toString()+ "\n" ;
                     console.log(cst);
                 } else {

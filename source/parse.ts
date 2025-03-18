@@ -59,7 +59,6 @@ class Parser {
 
     public parse(): { cst: any, logs: string[], pass: boolean } {
         try {
-            this.logMessage("info", "INFO Parser - Starting parsing...");// may remove this and add in index to inlcude program count
             this.parseProgram();
             this.logMessage("success", "INFO Parser - Successfully parsed program! \n");
             return { cst: this.cst, logs: this.log, pass: true };
@@ -130,6 +129,9 @@ class Parser {
             this.parseAssignmentStatement();
         } else if (this.check(tokenType.LBRACE)) {
             this.parseBlock();
+        }
+        else{
+            throw new Error(`Expected statement, found [${this.peek().value}]`);
         }
         this.cst.endChildren();
     }
@@ -243,7 +245,7 @@ class Parser {
         } else if (this.check(tokenType.ID)) {
             this.parseId();
         } else {
-            this.logMessage("error", `Unexpected token: ${this.peek().value}`);
+            throw new Error(`Expected statement, found [${this.peek().value}]`);
         }
         this.cst.endChildren();
     }

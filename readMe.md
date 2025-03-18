@@ -10,7 +10,56 @@ In its current state this program performs lexical analysis on input code. Per p
 
 To see my thoughts and notes throughout this project you can read my commits, comments, and **devNotes.txt**.
 
-## Here are some LEX test cases:
+## PARSE test cases:
+
+### Boolean Expression with boolval argurment
+
+    {
+        int a
+        a = 1
+        if (a != 2)
+            {
+                print("hi")
+            }
+    }$
+
+### Boolean Expression with BoolOp and Assignment
+
+    {
+        int a
+        int b
+        int c
+        a = 4
+        c = 1 + 2
+        if (a == c){
+            print ("hi")
+        }
+    }$
+
+### Int Op on two Ids (parse fail)
+    {
+        int a
+        int b
+        int c
+        a = 4
+        b = 1
+        c = a + b
+    }$
+
+### Missing paren in print statement (parse fail)
+
+    { print("hello" }$
+
+### Invalid int operation
+
+    { 5 + 1}$
+
+### Expressions inside print argument
+
+    { print(5 + (x == y)) }$
+
+
+## LEX test cases:
 
 ### lex without spaces:
 
