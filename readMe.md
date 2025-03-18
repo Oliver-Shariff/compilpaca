@@ -50,7 +50,7 @@ To see my thoughts and notes throughout this project you can read my commits, co
 
     { print("hello" }$
 
-### Invalid int operation
+### Invalid int operation (parse fail)
 
     { 5 + 1}$
 
