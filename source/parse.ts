@@ -196,9 +196,9 @@ class Parser {
         // this is because char != id as a result of lex
         this.cst.addNode("[char]", "branch");
         this.consume(tokenType.ID, `Expected variable name found ${this.peek().value}`);
-        this.cst.endChildren();
+        this.cst.endChildren(); //close ID node
 
-        this.cst.endChildren();
+        this.cst.endChildren(); // close char node
 
     }
 
@@ -245,7 +245,7 @@ class Parser {
         } else if (this.check(tokenType.ID)) {
             this.parseId();
         } else {
-            throw new Error(`Expected statement, found [${this.peek().value}]`);
+            throw new Error(`Expected expression, found [${this.peek().value}]`);
         }
         this.cst.endChildren();
     }
@@ -283,7 +283,7 @@ class Parser {
         this.parseCharList();
 
         this.consume(tokenType.QUOTE, "Expected closing quote");
-        this.cst.endChildren(); // Close StringExpression node
+        this.cst.endChildren(); 
     }
 
     private parseCharList() {
