@@ -6,7 +6,27 @@ QUESTIONS:
 ---------------------------------------------------------------------------------------------------------
 
 Lex test cases in ReadME. Add new parse test cases here during development
+---------------------------------------------------------------------------------------------------------
+March 17th: 
 
+	-CST displaying properly
+	-consistent way of adding nodes and ending children implemented throughout parsing methods
+	-user functionality works, don't parse if lex fails, no CST if parse fails.
+		-need to add EOP if missing from lex
+	
+	To DO: 
+	-parse 
+		X-intExpr
+		X-intop
+		X-id
+		X-type
+		X-char
+		X-space ? //handled in charlist
+		X-digit
+		X-boolop
+		X-boolval
+	
+		
 ---------------------------------------------------------------------------------------------------------
 March 13th
 
