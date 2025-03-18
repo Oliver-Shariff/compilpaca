@@ -40,7 +40,7 @@ class Parser {
 
     //move to next token and return previous one
     private advance(): Token {
-        if (!this.isAtEnd()) this.current++;
+        this.current++;
         return this.previous();
     }
 
@@ -58,8 +58,12 @@ class Parser {
     private consume(type: tokenType, message: string): Token {
         if (this.check(type)) {
             const token = this.advance();
+            console.log("Consumed: " + token.value)
             this.cst.addNode(token.value, "leaf");
             return token;
+        }
+        else{
+            console.log("failed to consume: " + this.peek().value)
         }
         throw new Error(message);
     }
@@ -82,21 +86,29 @@ class Parser {
     }
 
     private parseProgram() {
-        this.logMessage("debug", "DEBUG Parser - Parsing Program")
+        this.logMessage("debug", "DEBUG Parser - Parsing Program");
+    
         this.cst.addNode("[Block]", "branch");
-        this.parseBlock();
-        this.cst.endChildren();
-        this.consume(tokenType.EOP, 'Expected end of program ($)');
+        this.parseBlock(); 
+        this.cst.endChildren();     
+        this.consume(tokenType.EOP, "Expected end of program ($)");
     }
+    
+    
 
     private parseBlock() {
-        this.logMessage("debug", "DEBUG Parser - Parsing Block")
-        this.consume(tokenType.LBRACE, 'Expected { at start of block');
+        this.logMessage("debug", "DEBUG Parser - Parsing Block");
+    
+        this.consume(tokenType.LBRACE, "Expected { at start of block");
+    
         this.cst.addNode("[StatementList]", "branch");
         this.parseStatementList();
         this.cst.endChildren();
-        this.consume(tokenType.RBRACE, 'Expected } at end of block');
+    
+        this.consume(tokenType.RBRACE, "Expected } at end of block"); 
     }
+    
+    
 
     private parseStatementList() {
         this.logMessage("debug", "DEBUG Parser - Parsing Statement List")
@@ -138,9 +150,8 @@ class Parser {
             }
             this.cst.endChildren();
             this.cst.endChildren();
-        } else if (this.peek().type === tokenType.ID) {
+        } else if (this.check(tokenType.ID)) {
             this.cst.addNode("[AssignmentStatement]", "branch");
-            this.consume(tokenType.ID, 'Expected [id]');
             this.parseAssignmentStatement();
             this.cst.endChildren();
         } else if (this.check(tokenType.LBRACE)) {
@@ -194,7 +205,7 @@ class Parser {
 
     private parseBooleanExpr() {
         this.logMessage("debug", "DEBUG Parser - Parsing Bool Expr")
-        this.consume(tokenType.LPAREN, "Expected ( in boolean expression");
+        this.consume(tokenType.LPAREN, `Expected ( in boolean expression found ${this.peek().value}`);
         this.cst.addNode("[BooleanExpression]", "branch");
         this.parseExpression();
         this.consume(tokenType.EQUALITY, "Expected == or != in boolean expression");
@@ -224,32 +235,32 @@ class Parser {
         this.logMessage("debug", "DEBUG Parser - Parsing String Expr");
         this.cst.addNode("[StringExpression]", "branch");
         this.consume(tokenType.QUOTE, "Expected opening quote");
-    
+
         this.parseCharList();
-    
+
         this.consume(tokenType.QUOTE, "Expected closing quote");
         this.cst.endChildren(); // Close StringExpression node
     }
-    
+
     private parseCharList() {
         if (this.check(tokenType.QUOTE)) {
             return;
         }
-    
+
         this.cst.addNode("[CharList]", "branch");
-    
+
         if (this.match(tokenType.CHAR) || this.match(tokenType.SPACE)) {
             this.cst.addNode("[CHAR]", "branch");
             this.cst.addNode(`[${this.previous().value}]`, "leaf");
             this.cst.endChildren(); // Close CHAR node
-    
+
             // Recursive call for the next CharList element
             this.parseCharList();
         }
-    
+
         this.cst.endChildren(); // Close CharList node
     }
-    
+
 }
 
 export function parse(tokens: Token[]): { cst: Tree, logs: string[], pass: boolean } {
