@@ -62,9 +62,6 @@ class Parser {
             this.cst.addNode(token.value, "leaf");
             return token;
         }
-        else{
-            console.log("failed to consume: " + this.peek().value)
-        }
         throw new Error(message);
     }
 
@@ -89,8 +86,8 @@ class Parser {
         this.logMessage("debug", "DEBUG Parser - Parsing Program");
     
         this.cst.addNode("[Block]", "branch");
-        this.parseBlock(); 
-        this.cst.endChildren();     
+        this.parseBlock();
+        this.cst.endChildren();
         this.consume(tokenType.EOP, "Expected end of program ($)");
     }
     
@@ -120,9 +117,9 @@ class Parser {
     private parseStatement() {
         //we can see what type of statement we have based on the first token
         this.logMessage("debug", "DEBUG Parser - Parsing Statement")
+        this.cst.addNode("[Statement]", "branch");
         if (this.check(tokenType.KEYWORD)) {
             let keyword = this.peek().value;
-            this.cst.addNode("[Statement]", "branch");
             switch (keyword) {//this could be cleaner with multiple if statements but this is readable
                 case "print":
                     this.cst.addNode("[PrintStatement]", "branch");
@@ -148,17 +145,14 @@ class Parser {
                     this.parseVarDecl();
                     break;
             }
-            this.cst.endChildren();
-            this.cst.endChildren();
         } else if (this.check(tokenType.ID)) {
             this.cst.addNode("[AssignmentStatement]", "branch");
             this.parseAssignmentStatement();
             this.cst.endChildren();
         } else if (this.check(tokenType.LBRACE)) {
             this.parseBlock();
-        } else {
-            this.logMessage("error", `Unexpected token: ${this.peek().value}`);
         }
+        this.cst.endChildren();
     }
 
     private parsePrintStatement() {
