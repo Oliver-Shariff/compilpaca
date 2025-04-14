@@ -74,6 +74,43 @@ export function buildAST(cst: Tree): Tree {
                 astTree.endChildren();
                 break;
             }
+            case "[WhileStatement]": {
+                astTree.addNode("[WhileStatement]", "branch");
+
+                const boolExpr = node.children[1];
+                if (boolExpr?.name === "[BooleanExpression]") {
+
+                    // boolean expression as condition
+                    if (boolExpr.children.length >= 4) {
+                        const leftExpr = boolExpr.children[1];
+                        const boolOp = boolExpr.children[2];
+                        const rightExpr = boolExpr.children[3];
+
+                        if (leftExpr?.name === "[Expression]") visit(leftExpr, astTree);
+                        const op = boolOp?.children[0]?.name;
+                        if (op) astTree.addNode(op, "leaf");
+                        if (rightExpr?.name === "[Expression]") visit(rightExpr, astTree);
+                    }
+
+                    // boolval as condition
+                    else if (boolExpr.children[0]?.name === "[BooleanValue]") {
+                        const value = boolExpr.children[0]?.children[0]?.name;
+                        if (value) astTree.addNode(value, "leaf");
+                    }
+
+                }
+
+                // Handle the body block
+                const body = node.children[2];
+                if (body?.name === "[Block]") {
+                    visit(body, astTree);
+                }
+
+                astTree.endChildren(); // end <WhileStatement>
+                break;
+            }
+
+
             default:
                 for (const child of node.children) {
                     visit(child, astTree);
@@ -83,7 +120,7 @@ export function buildAST(cst: Tree): Tree {
     }
     function extractString(charListNode: TreeNode | undefined): string {
         let result = "";
-    
+
         let current = charListNode;
         while (current && current.name === "[CharList]") {
             const charNode = current.children[0]; // [CHAR]
@@ -94,10 +131,10 @@ export function buildAST(cst: Tree): Tree {
             // descend into next CharList
             current = current.children[1]; // nested CharList
         }
-    
+
         return result;
     }
-    
+
 
     visit(cst.root, ast);
     return ast;
