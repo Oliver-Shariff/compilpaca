@@ -29,7 +29,7 @@ class Tree {
         this.name = name;
     }
 
-    addNode(name: string, kind: "branch" | "leaf"): void {
+    addNode(name: string, kind: "branch" | "leaf", line?: number, column?: number): void {
         const node = new TreeNode(name, this.cur);
         console.log(this.name + " adding node " + name);
 

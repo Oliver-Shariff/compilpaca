@@ -39,7 +39,7 @@ function handleLexing() {
                 console.log(`program : ${programCount} pass state is ${pass}`)
                 outputLog += `\n<span class="info">INFO Parser - Parsing program ${programCount}...</span>\n`;
                 // Append parser logs to output
-                //outputLog += logs.join("\n"); // UNCOMMENT THIS!
+                outputLog += logs.join("\n"); // UNCOMMENT THIS!
 
                 if (pass && cst) {
                     outputLog += `\n<span class="info">INFO Parser - Concrete Syntax Tree Program ${programCount}:</span>\n`;

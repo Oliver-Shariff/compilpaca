@@ -15,7 +15,12 @@ class Parser {
     /*Helper methods */
 
     private logMessage(type: string, message: string) { //type here is css class for formatting
-        this.log.push(`<span class="${type}">${message}</span>`);
+        if(type == "debug" ||type == "error" ){
+            this.log.push(`<span class="${type}"> ${message} | line: ${this.peek().line} col: ${this.peek().line}</span>`)
+        }
+        else{
+            this.log.push(`<span class="${type}">${message}</span>`);
+        }
     }
 
     //look at current token
@@ -49,7 +54,7 @@ class Parser {
         if (this.check(type)) {
             const token = this.advance();
             //console.log("Consumed: " + token.value)
-            this.cst.addNode(token.value, "leaf");
+            this.cst.addNode(token.value, "leaf", token.line, token.column);
             return token;
         }
         throw new Error(message);
@@ -70,7 +75,7 @@ class Parser {
     }
 
     private parseProgram() {
-        this.logMessage("debug", "DEBUG Parser - Parsing Program");
+        this.logMessage("debug", "DEBUG Parser - Parsing Program at line: ");
         this.cst.addNode("[Program]", "branch");
         this.parseBlock();
         this.cst.endChildren();
