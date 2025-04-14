@@ -51,6 +51,7 @@ function handleLexing() {
                         console.log("below should be AST");
                         console.log(ast.toString());
                         console.log(ast)
+                        outputLog += ast.toString() + "\n";
                     } else {
                         console.log("No AST generated")
                     }

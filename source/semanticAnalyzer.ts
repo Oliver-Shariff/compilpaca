@@ -9,8 +9,14 @@ export function buildAST(cst: Tree): Tree {
         console.log("visiting node " + node.name);
         switch (node.name) {
             case "[Program]":
+                astTree.addNode("[Program]", "branch");
+                for (const child of node.children) {
+                    visit(child, astTree);
+                }
+                astTree.endChildren();
+                break;
             case "[Block]":
-                astTree.addNode("Block", "branch");
+                astTree.addNode("[Block]", "branch");
                 for (const child of node.children) {
                     visit(child, astTree);
                 }
@@ -19,9 +25,9 @@ export function buildAST(cst: Tree): Tree {
 
             case "[VarDecl]": {
                 const type = node.children[0]?.children[0]?.name;
-                const id = node.children[1]?.children[0]?.name;
+                const id = node.children[1]?.children[0]?.children[0].name;
                 if (type && id) {
-                    astTree.addNode("VariableDeclaration", "branch");
+                    astTree.addNode("[VariableDeclaration]", "branch");
                     astTree.addNode(type, "leaf");
                     astTree.addNode(id, "leaf");
                     astTree.endChildren();
@@ -30,10 +36,10 @@ export function buildAST(cst: Tree): Tree {
             }
 
             case "[AssignmentStatement]": {
-                const id = node.children[0]?.children[0]?.name;
+                const id = node.children[0]?.children[0]?.children[0]?.name;
                 const exprNode = node.children[2];
                 if (id && exprNode) {
-                    astTree.addNode("AssignmentStatement", "branch");
+                    astTree.addNode("[AssignmentStatement]", "branch");
                     astTree.addNode(id, "leaf");
                     visit(exprNode, astTree);  // delegate to expression
                     astTree.endChildren();
@@ -44,7 +50,6 @@ export function buildAST(cst: Tree): Tree {
             case "[IntExpression]": {
                 const digit = node.children[0]?.children[0]?.name;
                 if (digit) {
-                    astTree.addNode("IntLiteral", "branch");
                     astTree.addNode(digit, "leaf");
                     astTree.endChildren();
                 }
