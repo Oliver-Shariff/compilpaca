@@ -9,7 +9,7 @@ class Parser {
 
     constructor(tokens: Token[]) {
         this.tokens = tokens;
-        this.cst = new Tree();
+        this.cst = new Tree("cst");
     }
 
     /*Helper methods */
@@ -48,7 +48,7 @@ class Parser {
     private consume(type: tokenType, message: string): Token {
         if (this.check(type)) {
             const token = this.advance();
-            console.log("Consumed: " + token.value)
+            //console.log("Consumed: " + token.value)
             this.cst.addNode(token.value, "leaf");
             return token;
         }

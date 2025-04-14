@@ -1,6 +1,8 @@
 import { tokenize, Token, tokenType } from './lexer.js';
 import { parse } from './parse.js'
 import { Tree } from './tree.js'; // Import the Tree class
+import { buildAST } from './semanticAnalyzer.js';
+
 /*
 This file should delliver JS to index.html
 tasks:
@@ -41,8 +43,17 @@ function handleLexing() {
 
                 if (pass && cst) {
                     outputLog += `\n<span class="info">INFO Parser - Concrete Syntax Tree Program ${programCount}:</span>\n`;
-                    outputLog += cst.toString()+ "\n" ;
+                    outputLog += cst.toString() + "\n";
                     console.log(cst);
+
+                    const ast = buildAST(cst);
+                    if (ast) {
+                        console.log("below should be AST");
+                        console.log(ast.toString());
+                        console.log(ast)
+                    } else {
+                        console.log("No AST generated")
+                    }
                 } else {
                     outputLog += `<span class="error">ERROR Parser - Parsing failed. No CST generated.</span>\n`;
 
@@ -56,6 +67,8 @@ function handleLexing() {
         line = nextLine;
         column = nextColumn;
         console.log(tokens) // I can call the parse tokens function here
+
+
     }
 
 

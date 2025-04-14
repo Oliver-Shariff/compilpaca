@@ -3,9 +3,9 @@
 //
 // By Alan G. Labouseur, based on the 2009
 // work by Michael Ardizzone and Tim Smith.
-
-//This has been altered to a typescript file using AI
+// This has been altered to a typescript file using AI
 //-----------------------------------------
+
 class TreeNode {
     name: string;
     children: TreeNode[];
@@ -21,14 +21,17 @@ class TreeNode {
 class Tree {
     root: TreeNode | null;
     cur: TreeNode | null;
+    name: string;
 
-    constructor() {
+    constructor(name: string) {
         this.root = null;
         this.cur = null;
+        this.name = name;
     }
 
     addNode(name: string, kind: "branch" | "leaf"): void {
         const node = new TreeNode(name, this.cur);
+        console.log(this.name + " adding node " + name);
 
         if (!this.root) {
             this.root = node;
@@ -63,7 +66,7 @@ class Tree {
         if (this.root) {
             expand(this.root, 0);
         }
-        
+
         return traversalResult;
     }
 }
