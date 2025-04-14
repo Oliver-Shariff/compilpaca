@@ -10,11 +10,15 @@ class TreeNode {
     name: string;
     children: TreeNode[];
     parent: TreeNode | null;
+    line?: number;
+    column?: number;
 
-    constructor(name: string, parent: TreeNode | null = null) {
+    constructor(name: string, parent: TreeNode | null = null, line?: number, column?: number) {
         this.name = name;
         this.children = [];
         this.parent = parent;
+        this.line = line;
+        this.column = column;
     }
 }
 
@@ -30,7 +34,7 @@ class Tree {
     }
 
     addNode(name: string, kind: "branch" | "leaf", line?: number, column?: number): void {
-        const node = new TreeNode(name, this.cur);
+        const node = new TreeNode(name, this.cur, line, column);
         console.log(this.name + " adding node " + name);
 
         if (!this.root) {

@@ -16,7 +16,7 @@ class Parser {
 
     private logMessage(type: string, message: string) { //type here is css class for formatting
         if(type == "debug" ||type == "error" ){
-            this.log.push(`<span class="${type}"> ${message} | line: ${this.peek().line} col: ${this.peek().line}</span>`)
+            this.log.push(`<span class="${type}"> ${message} | line: ${this.peek().line} col: ${this.peek().column}</span>`)
         }
         else{
             this.log.push(`<span class="${type}">${message}</span>`);
@@ -142,8 +142,9 @@ class Parser {
     }
 
     private parsePrintStatement() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Print Statement")
-        this.cst.addNode("[PrintStatement]", "branch");
+        this.cst.addNode("[PrintStatement]", "branch", line, column);
         this.consume(tokenType.KEYWORD, 'Expected [print]')
         this.consume(tokenType.LPAREN, "Expected ( after print");
         this.parseExpression();
@@ -152,8 +153,9 @@ class Parser {
     }
 
     private parseWhileStatement() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing While Statement")
-        this.cst.addNode("[WhileStatement]", "branch");
+        this.cst.addNode("[WhileStatement]", "branch", line, column);
         this.consume(tokenType.KEYWORD, 'Expected [while]')
         this.parseBooleanExpr();
         this.parseBlock();
@@ -161,8 +163,9 @@ class Parser {
     }
 
     private parseIfStatement() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing if Statement");
-        this.cst.addNode("[IfStatement]", "branch");
+        this.cst.addNode("[IfStatement]", "branch", line, column);
         this.consume(tokenType.KEYWORD, 'Expected [if]')
         this.parseBooleanExpr();
         this.parseBlock();
@@ -170,24 +173,27 @@ class Parser {
     }
 
     private parseVarDecl() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Var Decl")
-        this.cst.addNode("[VarDecl]", "branch");
+        this.cst.addNode("[VarDecl]", "branch", line,column);
         this.parseType();
         this.parseId();
         this.cst.endChildren();
     }
     
     private parseType(){
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Type");
-        this.cst.addNode("[type]", "branch");
+        this.cst.addNode("[type]", "branch", line, column);
         this.consume(tokenType.KEYWORD, "Expected type keyword (int, string, boolean)");
         this.cst.endChildren();
         
     }
 
     private parseAssignmentStatement() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Assignment Statement")
-        this.cst.addNode("[AssignmentStatement]", "branch");
+        this.cst.addNode("[AssignmentStatement]", "branch", line,column);
         this.parseId();
         this.consume(tokenType.ASSIGN, "Expected = in assignment");
         this.parseExpression();
@@ -195,8 +201,9 @@ class Parser {
     }
 
     private parseId() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Id")
-        this.cst.addNode("[Id]", "branch");
+        this.cst.addNode("[Id]", "branch", line,column);
         //instead of writing parseChar we will manually enter the info to the tree
         // this is because char != id as a result of lex
         this.cst.addNode("[char]", "branch");
@@ -208,8 +215,9 @@ class Parser {
     }
 
     private parseBooleanExpr() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Bool Expr")
-        this.cst.addNode("[BooleanExpression]", "branch");
+        this.cst.addNode("[BooleanExpression]", "branch",line,column);
         if(this.check(tokenType.BOOL)){
             this.parseBoolVal();
         }
@@ -224,25 +232,28 @@ class Parser {
     }
 
     private parseBoolVal(){
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Bool Val")
-        this.cst.addNode("[BooleanValue]", "branch");
+        this.cst.addNode("[BooleanValue]", "branch",line,column);
         this.consume(tokenType.BOOL, "Expected boolean value (true or false");
         this.cst.endChildren();
     }
     
     private parseBoolOp(){
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Boolean Operation")
-        this.cst.addNode("[BoolOp]", "branch");
+        this.cst.addNode("[BoolOp]", "branch",line,column);
         this.consume(tokenType.EQUALITY, "Expected == or != in boolean expression");
         this.cst.endChildren();
     }
 
     private parseExpression() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Expr")
         this.cst.addNode("[Expression]", "branch");
         if (this.check(tokenType.NUMBER)) {
             this.parseIntExpression();
-            this.cst.addNode("[IntExpression]", "leaf");
+            this.cst.addNode("[IntExpression]", "leaf",line,column);
         } else if (this.check(tokenType.QUOTE)) {
             this.parseStringExpr();
         } else if (this.check(tokenType.BOOL)||this.check(tokenType.LPAREN)) {
@@ -256,8 +267,9 @@ class Parser {
     }
 
     private parseIntExpression() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing IntExpr")
-        this.cst.addNode("[IntExpression]", "branch");
+        this.cst.addNode("[IntExpression]", "branch",line,column);
         this.parseDigit();
         if (this.peek().value == "+") {
             this.parseIntOp();
@@ -267,22 +279,25 @@ class Parser {
     }
 
     private parseIntOp(){
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing IntOP");
-        this.cst.addNode("[Intger Operation]", "branch");
+        this.cst.addNode("[Intger Operation]", "branch",line,column);
         this.consume(tokenType.INTOP, "Expected Int Operation (+)");
         this.cst.endChildren();
     }
 
     private parseDigit() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing Digit");
-        this.cst.addNode("[Digit]", "branch");
+        this.cst.addNode("[Digit]", "branch",line,column);
         this.consume(tokenType.NUMBER, "Expected Digit [0-9]");
         this.cst.endChildren();
     }
 
     private parseStringExpr() {
+        const { line, column } = this.peek();
         this.logMessage("debug", "DEBUG Parser - Parsing String Expr");
-        this.cst.addNode("[StringExpression]", "branch");
+        this.cst.addNode("[StringExpression]", "branch",line,column);
         this.consume(tokenType.QUOTE, "Expected opening quote");
 
         this.parseCharList();
@@ -292,14 +307,15 @@ class Parser {
     }
 
     private parseCharList() {
+        const { line, column } = this.peek();
         if (this.check(tokenType.QUOTE)) {
             return;
         }
 
-        this.cst.addNode("[CharList]", "branch");
+        this.cst.addNode("[CharList]", "branch",line,column);
 
         if (this.check(tokenType.CHAR) || this.check(tokenType.SPACE)) {
-            this.cst.addNode(`[${this.peek().type}]`, "branch");
+            this.cst.addNode(`[${this.peek().type}]`, "branch",line,column);
             this.consume(this.peek().type, "Expected space or char in char list");
             this.cst.endChildren(); // Close CHAR node
 

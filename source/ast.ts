@@ -9,14 +9,14 @@ export function buildAST(cst: Tree): Tree {
         console.log("visiting node " + node.name);
         switch (node.name) {
             case "[Program]":
-                astTree.addNode("[Program]", "branch");
+                astTree.addNode("[Program]", "branch", node.line, node.column);
                 for (const child of node.children) {
                     visit(child, astTree);
                 }
                 astTree.endChildren();
                 break;
             case "[Block]":
-                astTree.addNode("[Block]", "branch");
+                astTree.addNode("[Block]", "branch", node.line, node.column);
                 for (const child of node.children) {
                     visit(child, astTree);
                 }
@@ -24,58 +24,67 @@ export function buildAST(cst: Tree): Tree {
                 break;
 
             case "[VarDecl]": {
-                const type = node.children[0]?.children[0]?.name;
-                const id = node.children[1]?.children[0]?.children[0].name;
+                const typeNode = node.children[0]?.children[0];
+                const idNode = node.children[1]?.children[0]?.children[0];
+
+                const type = typeNode?.name;
+                const id = idNode?.name;
+
                 if (type && id) {
-                    astTree.addNode("[VariableDeclaration]", "branch");
-                    astTree.addNode(type, "leaf");
-                    astTree.addNode(id, "leaf");
+                    astTree.addNode("[VariableDeclaration]", "branch", node.line, node.column);
+                    astTree.addNode(type, "leaf", typeNode.line, typeNode.column);
+                    astTree.addNode(id, "leaf", idNode.line, idNode.column);
                     astTree.endChildren();
                 }
                 break;
             }
 
+
             case "[AssignmentStatement]": {
-                const id = node.children[0]?.children[0]?.children[0]?.name;
+                const idNode = node.children[0]?.children[0]?.children[0];
                 const exprNode = node.children[2];
+
+                const id = idNode?.name;
+
                 if (id && exprNode) {
-                    astTree.addNode("[AssignmentStatement]", "branch");
-                    astTree.addNode(id, "leaf");
-                    visit(exprNode, astTree);  // can be any type of expr
+                    astTree.addNode("[AssignmentStatement]", "branch", node.line, node.column);
+                    astTree.addNode(id, "leaf", idNode.line, idNode.column);
+                    visit(exprNode, astTree);
                     astTree.endChildren();
                 }
                 break;
             }
+
             case "[BooleanExpression]": {
-                // expr
                 if (node.children.length >= 4) {
                     const leftExpr = node.children[1];
                     const boolOp = node.children[2];
                     const rightExpr = node.children[3];
 
                     const op = boolOp?.children[0]?.name;
+                    const opNode = boolOp?.children[0];
                     const opLabel = op === "==" ? "[Equals]" : "[NotEquals]";
-                    astTree.addNode(opLabel, "branch");
+
+                    astTree.addNode(opLabel, "branch", opNode?.line, opNode?.column);
 
                     if (leftExpr?.name === "[Expression]") visit(leftExpr, astTree);
                     if (rightExpr?.name === "[Expression]") visit(rightExpr, astTree);
 
-                    astTree.endChildren(); // end Equals/NotEquals
-                }
-
-                // boolval
-                else if (node.children[0]?.name === "[BooleanValue]") {
-                    const value = node.children[0]?.children[0]?.name;
-                    if (value) astTree.addNode(value, "leaf");
+                    astTree.endChildren();
+                } else if (node.children[0]?.name === "[BooleanValue]") {
+                    const valNode = node.children[0]?.children[0];
+                    const value = valNode?.name;
+                    if (value) astTree.addNode(value, "leaf", valNode?.line, valNode?.column);
                 }
 
                 break;
             }
+
             case "[StringExpression]": {
                 const charListNode = node.children[1]; // skip opening quote
                 const strValue = extractString(charListNode);
                 if (strValue) {
-                    astTree.addNode(`"${strValue}"`, "leaf");
+                    astTree.addNode(`"${strValue}"`, "leaf", node.line, node.column);
                 }
                 break;
             }
@@ -85,10 +94,11 @@ export function buildAST(cst: Tree): Tree {
                 const opNode = node.children[1];
                 const exprNode = node.children[2];
 
-                // Simple digit with no operation
+                // Simple digit
                 if (!opNode && digitNode?.name === "[Digit]") {
                     const value = digitNode.children[0]?.name;
-                    if (value) astTree.addNode(value, "leaf");
+                    const valNode = digitNode.children[0];
+                    if (value) astTree.addNode(value, "leaf", valNode?.line, valNode?.column);
                     break;
                 }
 
@@ -98,15 +108,14 @@ export function buildAST(cst: Tree): Tree {
                     opNode?.name === "[Intger Operation]" &&
                     opNode.children[0]?.name === "+"
                 ) {
-                    astTree.addNode("[Addition]", "branch");
+                    astTree.addNode("[Addition]", "branch", node.line, node.column);
 
                     const leftValue = digitNode.children[0]?.name;
-                    if (leftValue) {
-                        astTree.addNode(leftValue, "leaf");
-                    }
+                    const valNode = digitNode.children[0];
+                    if (leftValue) astTree.addNode(leftValue, "leaf", valNode?.line, valNode?.column);
 
                     if (exprNode?.name === "[Expression]") {
-                        visit(exprNode, astTree); // recursion allows for multiple additions
+                        visit(exprNode, astTree);
                     }
 
                     astTree.endChildren();
@@ -118,8 +127,9 @@ export function buildAST(cst: Tree): Tree {
 
 
 
+
             case "[PrintStatement]": {
-                astTree.addNode("[PrintStatement]", "branch");
+                astTree.addNode("[PrintStatement]", "branch", node.line, node.column);
 
                 // skip "print" and "("
                 const exprNode = node.children[2];
@@ -132,7 +142,7 @@ export function buildAST(cst: Tree): Tree {
             }
 
             case "[WhileStatement]": {
-                astTree.addNode("[WhileStatement]", "branch");
+                astTree.addNode("[WhileStatement]", "branch", node.line, node.column);
 
                 const boolExpr = node.children[1];
                 if (boolExpr?.name === "[BooleanExpression]") {
@@ -145,7 +155,7 @@ export function buildAST(cst: Tree): Tree {
 
                         const op = boolOp?.children[0]?.name;
                         if (op) {
-                            astTree.addNode(op === "==" ? "[Equals]" : "[NotEquals]", "branch"); // if == then [equals] else [NotEquals]
+                            astTree.addNode(op === "==" ? "[Equals]" : "[NotEquals]", "branch", node.line, node.column); // if == then [equals] else [NotEquals]
 
                             //  Nest the values directly into Equals
                             if (leftExpr?.name === "[Expression]") visit(leftExpr, astTree);
@@ -158,7 +168,7 @@ export function buildAST(cst: Tree): Tree {
                     // boolval as condition
                     else if (boolExpr.children[0]?.name === "[BooleanValue]") {
                         const value = boolExpr.children[0]?.children[0]?.name;
-                        if (value) astTree.addNode(value, "leaf");
+                        if (value) astTree.addNode(value, "leaf", node.line, node.column);
                     }
 
                 }
@@ -173,7 +183,7 @@ export function buildAST(cst: Tree): Tree {
                 break;
             }
             case "[IfStatement]": {
-                astTree.addNode("[IfStatement]", "branch");
+                astTree.addNode("[IfStatement]", "branch", node.line, node.column);
 
                 const boolExpr = node.children[1];
                 if (boolExpr?.name === "[BooleanExpression]") {
@@ -186,7 +196,7 @@ export function buildAST(cst: Tree): Tree {
 
                         const op = boolOp?.children[0]?.name;
                         if (op) {
-                            astTree.addNode(op === "==" ? "[Equals]" : "[NotEquals]", "branch"); // if == then [equals] else [NotEquals]
+                            astTree.addNode(op === "==" ? "[Equals]" : "[NotEquals]", "branch", node.line, node.column); // if == then [equals] else [NotEquals]
 
                             //  Nest the values directly into Equals
                             if (leftExpr?.name === "[Expression]") visit(leftExpr, astTree);
@@ -199,7 +209,7 @@ export function buildAST(cst: Tree): Tree {
                     // boolval
                     else if (boolExpr.children[0]?.name === "[BooleanValue]") {
                         const value = boolExpr.children[0]?.children[0]?.name;
-                        if (value) astTree.addNode(value, "leaf");
+                        if (value) astTree.addNode(value, "leaf", node.line, node.column);
                     }
                 }
 
@@ -219,10 +229,12 @@ export function buildAST(cst: Tree): Tree {
             }
 
             case "[Id]": {
-                const char = node.children[0]?.children[0]?.name;
-                if (char) astTree.addNode(char, "leaf");
+                const charNode = node.children[0]?.children[0];
+                const char = charNode?.name;
+                if (char) astTree.addNode(char, "leaf", charNode.line, charNode.column);
                 break;
             }
+
             default:
                 for (const child of node.children) {
                     visit(child, astTree);
