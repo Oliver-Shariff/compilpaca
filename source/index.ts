@@ -1,7 +1,7 @@
 import { tokenize, Token, tokenType } from './lexer.js';
 import { parse } from './parse.js'
 import { Tree } from './tree.js'; // Import the Tree class
-import { buildAST } from './semanticAnalyzer.js';
+import { buildAST } from './ast.js';
 
 /*
 This file should delliver JS to index.html
@@ -29,7 +29,7 @@ function handleLexing() {
             programCount++;
             outputLog += `\n<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
             const lexOutput = formatTokens(tokens, finalInComment, finalInQuote);
-           // outputLog += lexOutput;  UNCOMMENT THIS!
+           // outputLog += lexOutput;  //UNCOMMENT THIS!
             // Call the parser here after lexing
             if (lexOutput.includes("ERROR Lexer")) {
                 outputLog += `<span class="fail">Parser - Skipping Parse due to lexing errors.</span>\n`;
@@ -39,11 +39,11 @@ function handleLexing() {
                 console.log(`program : ${programCount} pass state is ${pass}`)
                 outputLog += `\n<span class="info">INFO Parser - Parsing program ${programCount}...</span>\n`;
                 // Append parser logs to output
-                //outputLog += logs.join("\n");  UNCOMMENT THIS!
+                //outputLog += logs.join("\n"); // UNCOMMENT THIS!
 
                 if (pass && cst) {
                     outputLog += `\n<span class="info">INFO Parser - Concrete Syntax Tree Program ${programCount}:</span>\n`;
-                   // outputLog += cst.toString() + "\n"; UNCOMMENT THIS!
+                   // outputLog += cst.toString() + "\n"; //UNCOMMENT THIS!
                     console.log(cst);
                     outputLog += `<span class="success">INFO Parse - Concrete Syntax Tree for Program ${programCount} generated! </span>\n`;
 
