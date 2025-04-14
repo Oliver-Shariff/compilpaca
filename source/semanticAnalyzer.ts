@@ -51,7 +51,7 @@ export function buildAST(cst: Tree): Tree {
                 const digit = node.children[0]?.children[0]?.name;
                 if (digit) {
                     astTree.addNode(digit, "leaf");
-                    astTree.endChildren();
+                    //astTree.endChildren();
                 }
                 break;
             }
@@ -109,6 +109,48 @@ export function buildAST(cst: Tree): Tree {
                 astTree.endChildren(); // end <WhileStatement>
                 break;
             }
+            case "[IfStatement]": {
+                astTree.addNode("[IfStatement]", "branch");
+            
+                const boolExpr = node.children[1];  // [BooleanExpression]
+                if (boolExpr?.name === "[BooleanExpression]") {
+            
+                    // CASE 1: Complex (1 == 2), (a != b)
+                    if (boolExpr.children.length >= 4) {
+                        const leftExpr = boolExpr.children[1];
+                        const boolOp = boolExpr.children[2];
+                        const rightExpr = boolExpr.children[3];
+            
+                        const op = boolOp?.children[0]?.name;
+                        if (op) {
+                            astTree.addNode(op === "==" ? "[Equals]" : "[NotEquals]", "branch");
+            
+                            // ⬇️ Nest the values directly into Equals
+                            if (leftExpr?.name === "[Expression]") visit(leftExpr, astTree);
+                            if (rightExpr?.name === "[Expression]") visit(rightExpr, astTree);
+            
+                            astTree.endChildren(); // close Equals/NotEquals
+                        }
+                    }
+            
+                    // CASE 2: Literal (true / false)
+                    else if (boolExpr.children[0]?.name === "[BooleanValue]") {
+                        const value = boolExpr.children[0]?.children[0]?.name;
+                        if (value) astTree.addNode(value, "leaf");
+                    }
+                }
+            
+                // Visit the if block body
+                const body = node.children[2];
+                if (body?.name === "[Block]") {
+                    visit(body, astTree);
+                }
+            
+                astTree.endChildren(); // close IfStatement
+                break;
+            }
+            
+
 
 
             default:
