@@ -41,55 +41,118 @@ export function buildAST(cst: Tree): Tree {
                 if (id && exprNode) {
                     astTree.addNode("[AssignmentStatement]", "branch");
                     astTree.addNode(id, "leaf");
-                    visit(exprNode, astTree);  // delegate to expression
+                    visit(exprNode, astTree);  // can be any type of expr
                     astTree.endChildren();
+                }
+                break;
+            }
+            case "[BooleanExpression]": {
+                // expr
+                if (node.children.length >= 4) {
+                    const leftExpr = node.children[1];
+                    const boolOp = node.children[2];
+                    const rightExpr = node.children[3];
+
+                    const op = boolOp?.children[0]?.name;
+                    const opLabel = op === "==" ? "[Equals]" : "[NotEquals]";
+                    astTree.addNode(opLabel, "branch");
+
+                    if (leftExpr?.name === "[Expression]") visit(leftExpr, astTree);
+                    if (rightExpr?.name === "[Expression]") visit(rightExpr, astTree);
+
+                    astTree.endChildren(); // end Equals/NotEquals
+                }
+
+                // boolval
+                else if (node.children[0]?.name === "[BooleanValue]") {
+                    const value = node.children[0]?.children[0]?.name;
+                    if (value) astTree.addNode(value, "leaf");
+                }
+
+                break;
+            }
+            case "[StringExpression]": {
+                const charListNode = node.children[1]; // skip opening quote
+                const strValue = extractString(charListNode);
+                if (strValue) {
+                    astTree.addNode(`"${strValue}"`, "leaf");
                 }
                 break;
             }
 
             case "[IntExpression]": {
-                const digit = node.children[0]?.children[0]?.name;
-                if (digit) {
-                    astTree.addNode(digit, "leaf");
-                    //astTree.endChildren();
-                }
-                break;
-            }
-            case "[PrintStatement]": {
-                astTree.addNode("[PrintStatment]", "branch");
-
-                // Locate the expression (3rd child in CST)
+                const digitNode = node.children[0];
+                const opNode = node.children[1];
                 const exprNode = node.children[2];
 
-                // Handle the expression (expecting a StringExpression)
-                if (exprNode?.name === "[Expression]") {
-                    const stringExpr = exprNode.children[0];
-                    if (stringExpr?.name === "[StringExpression]") {
-                        const charListNode = stringExpr.children[1]; // after opening quote
-                        const strValue = extractString(charListNode); //helper function handles charlist
-                        astTree.addNode(strValue, "leaf");
+                // Simple digit with no operation
+                if (!opNode && digitNode?.name === "[Digit]") {
+                    const value = digitNode.children[0]?.name;
+                    if (value) astTree.addNode(value, "leaf");
+                    break;
+                }
+
+                // Addition
+                if (
+                    digitNode?.name === "[Digit]" &&
+                    opNode?.name === "[Intger Operation]" &&
+                    opNode.children[0]?.name === "+"
+                ) {
+                    astTree.addNode("[Addition]", "branch");
+
+                    const leftValue = digitNode.children[0]?.name;
+                    if (leftValue) {
+                        astTree.addNode(leftValue, "leaf");
                     }
+
+                    if (exprNode?.name === "[Expression]") {
+                        visit(exprNode, astTree); // recursion allows for multiple additions
+                    }
+
+                    astTree.endChildren();
+                    break;
+                }
+
+                break;
+            }
+
+
+
+            case "[PrintStatement]": {
+                astTree.addNode("[PrintStatement]", "branch");
+
+                // skip "print" and "("
+                const exprNode = node.children[2];
+                if (exprNode?.name === "[Expression]") {
+                    visit(exprNode, astTree);
                 }
 
                 astTree.endChildren();
                 break;
             }
+
             case "[WhileStatement]": {
                 astTree.addNode("[WhileStatement]", "branch");
 
                 const boolExpr = node.children[1];
                 if (boolExpr?.name === "[BooleanExpression]") {
 
-                    // boolean expression as condition
+                    // boolexpr
                     if (boolExpr.children.length >= 4) {
                         const leftExpr = boolExpr.children[1];
                         const boolOp = boolExpr.children[2];
                         const rightExpr = boolExpr.children[3];
 
-                        if (leftExpr?.name === "[Expression]") visit(leftExpr, astTree);
                         const op = boolOp?.children[0]?.name;
-                        if (op) astTree.addNode(op, "leaf");
-                        if (rightExpr?.name === "[Expression]") visit(rightExpr, astTree);
+                        if (op) {
+                            astTree.addNode(op === "==" ? "[Equals]" : "[NotEquals]", "branch"); // if == then [equals] else [NotEquals]
+
+                            //  Nest the values directly into Equals
+                            if (leftExpr?.name === "[Expression]") visit(leftExpr, astTree);
+                            if (rightExpr?.name === "[Expression]") visit(rightExpr, astTree);
+
+                            astTree.endChildren(); // close Equals/NotEquals
+                        }
                     }
 
                     // boolval as condition
@@ -106,53 +169,60 @@ export function buildAST(cst: Tree): Tree {
                     visit(body, astTree);
                 }
 
-                astTree.endChildren(); // end <WhileStatement>
+                astTree.endChildren(); // close <WhileStatement>
                 break;
             }
             case "[IfStatement]": {
                 astTree.addNode("[IfStatement]", "branch");
-            
-                const boolExpr = node.children[1];  // [BooleanExpression]
+
+                const boolExpr = node.children[1];
                 if (boolExpr?.name === "[BooleanExpression]") {
-            
-                    // CASE 1: Complex (1 == 2), (a != b)
+
+                    // boolexper
                     if (boolExpr.children.length >= 4) {
                         const leftExpr = boolExpr.children[1];
                         const boolOp = boolExpr.children[2];
                         const rightExpr = boolExpr.children[3];
-            
+
                         const op = boolOp?.children[0]?.name;
                         if (op) {
-                            astTree.addNode(op === "==" ? "[Equals]" : "[NotEquals]", "branch");
-            
-                            // ⬇️ Nest the values directly into Equals
+                            astTree.addNode(op === "==" ? "[Equals]" : "[NotEquals]", "branch"); // if == then [equals] else [NotEquals]
+
+                            //  Nest the values directly into Equals
                             if (leftExpr?.name === "[Expression]") visit(leftExpr, astTree);
                             if (rightExpr?.name === "[Expression]") visit(rightExpr, astTree);
-            
+
                             astTree.endChildren(); // close Equals/NotEquals
                         }
                     }
-            
-                    // CASE 2: Literal (true / false)
+
+                    // boolval
                     else if (boolExpr.children[0]?.name === "[BooleanValue]") {
                         const value = boolExpr.children[0]?.children[0]?.name;
                         if (value) astTree.addNode(value, "leaf");
                     }
                 }
-            
+
                 // Visit the if block body
                 const body = node.children[2];
                 if (body?.name === "[Block]") {
                     visit(body, astTree);
                 }
-            
+
                 astTree.endChildren(); // close IfStatement
                 break;
             }
-            
+            case "[Expression]": {
+                const inner = node.children[0];
+                if (inner) visit(inner, astTree); // match the type of expression and call that
+                break;
+            }
 
-
-
+            case "[Id]": {
+                const char = node.children[0]?.children[0]?.name;
+                if (char) astTree.addNode(char, "leaf");
+                break;
+            }
             default:
                 for (const child of node.children) {
                     visit(child, astTree);

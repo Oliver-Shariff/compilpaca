@@ -10,6 +10,66 @@ In its current state this program performs lexical analysis and parsing on input
 
 To see my thoughts and notes throughout this project you can read my commits, comments, and **devNotes.txt**.
 
+## Semantic Analysis - AST test cases
+
+## Nested assignment statements
+    {
+        boolean d
+        d = (true == (true == false))
+        d = (a == b)
+        d = (1 == a)
+        d = ("string" == 1)
+        d = (a != "string")
+        d = ("string" != "string")
+    }$
+
+## Chained addition
+
+    {
+      int x
+      x = 1 + 2 + 3
+    }$
+
+## compare in print
+
+    {
+      print((1 == 1))
+      print((x != 5))
+    }$
+
+## nested blocks
+
+    {
+      int a
+      {
+        int b
+        b = 2
+        print(b)
+      }
+    }$
+
+### Variable addition
+
+    {
+        int a
+        a = 1
+        int b
+        b = 2
+        b = 3 + a
+    }$
+
+## Print every type of expression
+
+    {
+        int b
+        b = 1
+        print((1==1))
+        print(b)
+        print(1+1)
+        print(1)
+    }$
+
+
 ## PARSE test cases:
 
 ### Boolean Expression with boolval argurment
