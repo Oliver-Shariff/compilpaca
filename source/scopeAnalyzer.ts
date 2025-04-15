@@ -58,6 +58,92 @@ export function analyzeScope(ast: Tree): string[] {
         }
     }
 
+    function visit(node: TreeNode): void {
+        switch (node.name) {
 
+            case "[Block]":
+                enterScope();
+                for (const child of node.children) visit(child);
+                exitScope();
+                break;
 
+            case "[VariableDeclaration]": {
+                const type = node.children[0]?.name;
+                const idNode = node.children[1];
+                const name = idNode?.name;
+                const { line, column } = idNode;
+
+                if (name) {
+                    const added = currentScope.declare({
+                        name,
+                        type,
+                        line,
+                        column,
+                        isInitialized: false,
+                        isUsed: false,
+                    });
+
+                    if (!added) {
+                        errors.push(` Error: Variable '${name}' redeclared in same scope at line ${line}, col ${column}`);
+                    }
+                }
+                break;
+            }
+            case "[AssignmentStatement]": {
+                const idNode = node.children[0];
+                const name = idNode?.name;
+                const { line, column } = idNode;
+
+                const symbol = currentScope.lookup(name);
+                if (!symbol) {
+                    errors.push(`Error: Undeclared variable '${name}' assigned at line ${line}, col ${column}`);
+                }
+
+                visit(node.children[1]); // RHS
+                break;
+            }
+            case "[PrintStatement]":
+                visit(node.children[0]);
+                break;
+
+            case "[IfStatement]":
+            case "[WhileStatement]":
+                visit(node.children[0]); // condition
+                visit(node.children[1]); // block
+                break;
+
+            case "[Equals]":
+            case "[NotEquals]":
+            case "[Addition]":
+                for (const child of node.children) visit(child);
+                break;
+            default:
+                if (node.children.length === 0 && /^[a-z]$/.test(node.name)) {//regex matching var name
+                    const symbol = currentScope.lookup(node.name);
+                    if (!symbol) {
+                        errors.push(` Error: Variable '${node.name}' used without declaration at line ${node.line}, col ${node.column}`);
+                    }
+                }
+
+                for (const child of node.children) visit(child);
+                break;
+        }
+    }
+
+    if (ast.root) {
+        visit(ast.root);
+    }
+    scopeLog.push("\n🧾 Scope Tree:\n" + rootScope.toString());
+
+    if (errors.length) {
+        scopeLog.push("\n Scope Errors:");
+        for (const err of errors) scopeLog.push(err);
+    } else {
+        scopeLog.push("\n No scope errors found.");
+    }
+
+    return scopeLog;
 }
+
+
+

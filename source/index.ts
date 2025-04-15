@@ -58,7 +58,10 @@ function handleLexing() {
                         outputLog += ast.toString() + "\n";
                         outputLog += `<span class="success">INFO Semantic Analyzer - Abstract Syntax Tree for Program ${programCount} generated! </span>\n`;
 
-                        
+                        const scopeLog = analyzeScope(ast);
+                        outputLog += `<span class="info">INFO Scope - Building symbol tables...</span>\n`;
+                        outputLog += scopeLog.map(line => `<span class="info">${line}</span>\n`).join("");
+
 
                     } else {
                         console.log("No AST generated")
