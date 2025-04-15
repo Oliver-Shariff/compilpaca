@@ -39,11 +39,10 @@ class Scope {
 export function analyzeScope(ast: Tree): string[] {
     const scopeLog: string[] = [];
     const errors: string[] = [];
-    const warnigns: string[] = [];
 
     const rootScope = new Scope(null, 0);
     let currentScope = rootScope;
-    let scopeLevel = 0;
+    let scopeLevel = -1;// set this to negative one so the first scope is 0
 
     function enterScope() {
         const newScope = new Scope(currentScope, ++scopeLevel);//current as parent
@@ -133,15 +132,79 @@ export function analyzeScope(ast: Tree): string[] {
     if (ast.root) {
         visit(ast.root);
     }
-    scopeLog.push("\n🧾 Scope Tree:\n" + rootScope.toString());
-
+    //Start Error, warning, Success Logs
     if (errors.length) {
-        scopeLog.push("\n Scope Errors:");
-        for (const err of errors) scopeLog.push(err);
+        scopeLog.push(`<span class="error"> Scope Errors:</span>`);
+        for (const err of errors) scopeLog.push(`<span class="error"> ${err}</span>`);
+        scopeLog.push(`\n`);
     } else {
-        scopeLog.push("\n No scope errors found.");
+        scopeLog.push(`<span class="success">INFO Semantic Analyzer - No scope errors found.</span>`);
+        scopeLog.push(`\n`);
     }
+    
+    scopeLog.push(`<span class="warning"> Scope Warnings:</span>`);
+    collectWarnings(rootScope);
+    scopeLog.push(`\n`);
+    
+    function collectWarnings(scope: Scope): void {
+        for (const symbol of scope.symbols.values()) {
+            const { name, line, column, isInitialized, isUsed } = symbol;
+    
+            if (!isUsed) {
+                scopeLog.push(`<span class="warning"> '${name}' declared at line ${line}, col ${column} but never used.</span>`);
+            }
+    
+            if (isUsed && !isInitialized) {
+                scopeLog.push(`<span class="warning"> '${name}' used at line ${line}, col ${column} before being initialized.</span>`);
+            }
+    
+            if (isInitialized && !isUsed) {
+                scopeLog.push(`<span class="warning"> '${name}' initialized at line ${line}, col ${column} but never used.</span>`);
+            }
+        }
+    
+        for (const child of scope.children) {
+            collectWarnings(child);
+        }
+    }
+    //End Error, warning, Success Logs
+    
+    //Symbol Table Display
+    scopeLog.push(`<span class="info"> Symbol Table:</span>`);
+    scopeLog.push(generateSymbolHTMLTable(rootScope));
 
+    function generateSymbolHTMLTable(scope: Scope): string {
+        let html = `<table border="1" cellpadding="4" cellspacing="0" style="border-collapse: collapse;">`;
+        html += `<thead><tr>
+                    <th>NAME</th>
+                    <th>TYPE</th>
+                    <th>isINIT?</th>
+                    <th>isUSED?</th>
+                    <th>SCOPE</th>
+                 </tr></thead><tbody>`;
+
+        function recurse(s: Scope) {
+            for (const symbol of s.symbols.values()) {
+                html += `<tr>
+                            <td>${symbol.name}</td>
+                            <td>${symbol.type}</td>
+                            <td>${symbol.isInitialized}</td>
+                            <td>${symbol.isUsed}</td>
+                            <td>${s.level}</td>
+                         </tr>`;
+            }
+            for (const child of s.children) {
+                recurse(child);
+            }
+        }
+
+        recurse(scope);
+        html += `</tbody></table>`;
+        return html;
+    }
+    //Symbol Table end
+
+    
     return scopeLog;
 }
 
