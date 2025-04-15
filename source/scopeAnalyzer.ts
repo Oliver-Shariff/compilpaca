@@ -37,5 +37,27 @@ class Scope {
 }
 
 export function analyzeScope(ast: Tree): string[] {
+    const scopeLog: string[] = [];
+    const errors: string[] = [];
+    const warnigns: string[] = [];
+
+    const rootScope = new Scope(null, 0);
+    let currentScope = rootScope;
+    let scopeLevel = 0;
+
+    function enterScope() {
+        const newScope = new Scope(currentScope, ++scopeLevel);//current as parent
+        currentScope.addChild(newScope); //new scope as child to prev
+        currentScope = newScope;
+    }
+
+    function exitScope() {
+        if (currentScope.parent) { //if parent exists
+            currentScope = currentScope.parent; // make parent scope current scope
+            scopeLevel--; //decrement scope level
+        }
+    }
+
+
 
 }
