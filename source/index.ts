@@ -1,8 +1,8 @@
 import { tokenize, Token, tokenType } from './lexer.js';
 import { parse } from './parse.js'
-import { Tree } from './tree.js'; // Import the Tree class
 import { buildAST } from './ast.js';
 import { analyzeScope } from './scopeAnalyzer.js';
+import { generateCode } from './codeGen.js';
 
 /*
 This file should delliver JS to index.html
@@ -63,6 +63,14 @@ function handleLexing() {
 
                         outputLog += scopeLog.map(line => `<span class="info">${line}</span>\n`).join("");
 
+                        const scopeError = scopeLog.some(line => line.includes("Scope Errors:"));
+
+                        if(scopeError){
+                            outputLog += `<span class ="error"> ERROR Code Gen - Code Gen Skipped due to scope errors`
+                        }
+                        else{
+                            //call generate code here
+                        }
 
                     } else {
                         console.log("No AST generated")

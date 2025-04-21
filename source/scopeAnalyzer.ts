@@ -38,7 +38,9 @@ class Scope {
 
 export function analyzeScope(ast: Tree): string[] {
     const scopeLog: string[] = [];
+    const warningLog: string[] = [];
     const errors: string[] = [];
+    
 
     const rootScope = new Scope(null, 0);
     let currentScope = rootScope;
@@ -96,7 +98,10 @@ export function analyzeScope(ast: Tree): string[] {
                 const symbol = currentScope.lookup(name);
                 if (!symbol) {
                     errors.push(`Error: Undeclared variable '${name}' assigned at line ${line}, col ${column}`);
+                } else {
+                    symbol.isInitialized = true;
                 }
+
 
                 visit(node.children[1]); // RHS
                 break;
@@ -121,7 +126,10 @@ export function analyzeScope(ast: Tree): string[] {
                     const symbol = currentScope.lookup(node.name);
                     if (!symbol) {
                         errors.push(` Error: Variable '${node.name}' used without declaration at line ${node.line}, col ${node.column}`);
+                    } else {
+                        symbol.isUsed = true;
                     }
+
                 }
 
                 for (const child of node.children) visit(child);
@@ -141,34 +149,43 @@ export function analyzeScope(ast: Tree): string[] {
         scopeLog.push(`<span class="success">INFO Semantic Analyzer - No scope errors found.</span>`);
         scopeLog.push(`\n`);
     }
-    
-    scopeLog.push(`<span class="warning"> Scope Warnings:</span>`);
+
     collectWarnings(rootScope);
-    scopeLog.push(`\n`);
-    
+
+    if (warningLog.length > 0) {
+        scopeLog.push(`<span class="warning"> Scope Warnings:</span>`);
+        for (const warn of warningLog) {
+            scopeLog.push(warn);
+        }
+        scopeLog.push(`\n`);
+    } else {
+        scopeLog.push(`<span class="success">INFO Semantic Analyzer - No scope warnings found.</span>\n`);
+    }
+
+
     function collectWarnings(scope: Scope): void {
         for (const symbol of scope.symbols.values()) {
             const { name, line, column, isInitialized, isUsed } = symbol;
-    
+
             if (!isUsed) {
-                scopeLog.push(`<span class="warning"> '${name}' declared at line ${line}, col ${column} but never used.</span>`);
+                warningLog.push(`<span class="warning"> '${name}' declared at line ${line}, col ${column} but never used.</span>`);
             }
-    
+
             if (isUsed && !isInitialized) {
-                scopeLog.push(`<span class="warning"> '${name}' used at line ${line}, col ${column} before being initialized.</span>`);
+                warningLog.push(`<span class="warning"> '${name}' used at line ${line}, col ${column} before being initialized.</span>`);
             }
-    
+
             if (isInitialized && !isUsed) {
-                scopeLog.push(`<span class="warning"> '${name}' initialized at line ${line}, col ${column} but never used.</span>`);
+                warningLog.push(`<span class="warning"> '${name}' initialized at line ${line}, col ${column} but never used.</span>`);
             }
         }
-    
+
         for (const child of scope.children) {
             collectWarnings(child);
         }
     }
     //End Error, warning, Success Logs
-    
+
     //Symbol Table Display
     scopeLog.push(`<span class="info"> Symbol Table:</span>`);
     scopeLog.push(generateSymbolHTMLTable(rootScope));
@@ -204,9 +221,10 @@ export function analyzeScope(ast: Tree): string[] {
     }
     //Symbol Table end
 
-    
+
     return scopeLog;
 }
 
+export { Scope };
 
 
