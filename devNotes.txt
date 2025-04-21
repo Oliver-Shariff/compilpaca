@@ -1,7 +1,15 @@
 
 QUESTIONS:
 
+---------------------------------------------------------------------------------------------------------
+April 21st:
 
+	-Had to fix isUsed and isIntialized in the scopeAnalyzer
+	-We can ow move onto code gen if there are no errors with sematic analysis
+	-code gen should only need the AST and symbol table and only return an array or an error
+	-that logic is now handled in index.ts
+	- I need to remember to moves all lexing logic to lexer.ts from index.ts later
+	-first lets get this array printing nicely so I can debug as I go
 
 ---------------------------------------------------------------------------------------------------------
 

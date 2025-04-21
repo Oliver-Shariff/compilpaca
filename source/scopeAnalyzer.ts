@@ -36,7 +36,7 @@ class Scope {
     }
 }
 
-export function analyzeScope(ast: Tree): string[] {
+export function analyzeScope(ast: Tree): {log: string[], rootScope: Scope}{
     const scopeLog: string[] = [];
     const warningLog: string[] = [];
     const errors: string[] = [];
@@ -222,9 +222,13 @@ export function analyzeScope(ast: Tree): string[] {
     //Symbol Table end
 
 
-    return scopeLog;
+    return {
+        log: scopeLog,
+        rootScope: rootScope,
+      
+    };
 }
 
-export { Scope };
+export { Scope, SymbolInfo };
 
 

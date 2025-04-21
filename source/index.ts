@@ -30,7 +30,7 @@ function handleLexing() {
             programCount++;
             outputLog += `\n<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
             const lexOutput = formatTokens(tokens, finalInComment, finalInQuote);
-             outputLog += lexOutput;  //UNCOMMENT THIS!
+            outputLog += lexOutput;  //UNCOMMENT THIS!
             // Call the parser here after lexing
             if (lexOutput.includes("ERROR Lexer")) {
                 outputLog += `<span class="fail">Parser - Skipping Parse due to lexing errors.</span>\n`;
@@ -44,7 +44,7 @@ function handleLexing() {
 
                 if (pass && cst) {
                     outputLog += `\n<span class="info">INFO Parser - Concrete Syntax Tree Program ${programCount}:</span>\n`;
-                     outputLog += cst.toString() + "\n"; //UNCOMMENT THIS!
+                    outputLog += cst.toString() + "\n"; //UNCOMMENT THIS!
                     console.log(cst);
                     outputLog += `<span class="success">INFO Parse - Concrete Syntax Tree for Program ${programCount} generated! </span>\n`;
 
@@ -59,17 +59,31 @@ function handleLexing() {
                         outputLog += `<span class="success">INFO Semantic Analyzer - Abstract Syntax Tree for Program ${programCount} generated! </span>\n`;
                         outputLog += `\n`
 
-                        const scopeLog = analyzeScope(ast);
+                        const { log: scopeLog, rootScope } = analyzeScope(ast);
 
                         outputLog += scopeLog.map(line => `<span class="info">${line}</span>\n`).join("");
 
                         const scopeError = scopeLog.some(line => line.includes("Scope Errors:"));
 
-                        if(scopeError){
+                        if (scopeError) {
                             outputLog += `<span class ="error"> ERROR Code Gen - Code Gen Skipped due to scope errors`
                         }
-                        else{
+                        else {
                             //call generate code here
+                            const code = generateCode(ast, rootScope);
+                            outputLog += `<span class="success">INFO Code Gen - Code successfully generated:</span>\n`;
+                            outputLog += `<pre class="code">`;
+
+                            for (let i = 0; i < code.length; i++) {
+                                const hex = code[i].toString(16).toUpperCase().padStart(2, '0');
+                                outputLog += hex + " ";
+
+                                if ((i + 1) % 8 === 0) {
+                                    outputLog += "\n";
+                                }
+                            }
+
+                            outputLog += `</pre>\n`;
                         }
 
                     } else {
