@@ -35,7 +35,7 @@ class Tree {
 
     addNode(name: string, kind: "branch" | "leaf", line?: number, column?: number): void {
         const node = new TreeNode(name, this.cur, line, column);
-        console.log(this.name + " adding node " + name);
+        //console.log(this.name + " adding node " + name);
 
         if (!this.root) {
             this.root = node;

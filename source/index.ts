@@ -72,6 +72,8 @@ function handleLexing() {
                             //call generate code here
                             const code = generateCode(ast, rootScope);
                             outputLog += `<span class="success">INFO Code Gen - Code successfully generated:</span>\n`;
+                            //ChatGPT helped me print this cleanly
+
                             outputLog += `<pre class="code">`;
 
                             for (let i = 0; i < code.length; i++) {

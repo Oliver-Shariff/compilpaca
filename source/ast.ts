@@ -6,7 +6,7 @@ export function buildAST(cst: Tree): Tree {
     if (!cst.root) return ast;
 
     function visit(node: TreeNode, astTree: Tree): void {
-        console.log("visiting node " + node.name);
+        //console.log("visiting node " + node.name);
         switch (node.name) {
             case "[Program]":
                 astTree.addNode("[Program]", "branch", node.line, node.column);

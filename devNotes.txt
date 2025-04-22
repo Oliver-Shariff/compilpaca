@@ -11,6 +11,14 @@ April 21st:
 	- I need to remember to moves all lexing logic to lexer.ts from index.ts later
 	-first lets get this array printing nicely so I can debug as I go
 
+	-OK I had to adjust scopeAnalyzer again to return the scope tree so codeGen can see it
+	-The array is filled with 0x00 and output is displayed cleanly
+
+	-I've initialized a static table, later I'll need a jump table when working on conditional statements
+	-now let's work on traversing the AST and using case switch statements to fill the code array and static table
+	-I'm wondering if I even needed the scope tree...
+	
+
 ---------------------------------------------------------------------------------------------------------
 
 Lex test cases in ReadME. Add new parse test cases here during development
