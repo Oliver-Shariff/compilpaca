@@ -1,11 +1,57 @@
 
 QUESTIONS:
 
+
+---------------------------------------------------------------------------------------------------------
+April 22nd:
+
+	-I got the intial case switch working, we're parsing the AST to add op codes and operands into the code array
+	-we need to handle the static table now
+		-create a static object that holds
+			-temp address T0, T1, T2 etc
+			-id name (not using var since it is a keyword in TS)
+			-actual address or address length
+
+		-On entry creation I need to:
+			-create this static object
+			-put in in the static table
+
+		-Considerations:
+			-check if Id already exists
+			-how will I back fill in the code array?
+				-The static object either needs to hold an array with all the locations it exists in the code array
+				OR
+				-I need to loop through the code array for find and replace
+				^ that's easier
+				ok so I'll change address to a string, store the address as the intial operand and the following can always be 00 since we only have a 256byte array
+				-wait but can I easily increment a string? and what if there are more than 10 variables? once I pass t9 the find and replace will break
+				-with the grammar we can have 26 unique variables, let's account for that
+				-I could use capital letters A-Z, that will allow incrementing and won't get confused with var names since those can only be lowercase
+				-I may need to adjust the code array since I think it can only hold number right now
+
+		ok so I come across and id
+			-check if it exists in the staic table with node.name in static[]
+				-if it does use the existing temp name
+				-if it doesn't
+					-prevTemp = staticTable[staticTable.length-1].temp
+					-prevAdd = staticTable[staticTable.length-1].address
+					-new temp = prevTemp++
+					-newAdd = ...
+
+				-hmm address is more like offset
+
+		-side note with additional scope we can have more than 26 unique variables
+			-two letters gives us 26^2 so 676 
+		-I should probably use lowercase so it doesn't get confused with opcodes
+
+
+
+
 ---------------------------------------------------------------------------------------------------------
 April 21st:
 
 	-Had to fix isUsed and isIntialized in the scopeAnalyzer
-	-We can ow move onto code gen if there are no errors with sematic analysis
+	-We can now move onto code gen if there are no errors with sematic analysis
 	-code gen should only need the AST and symbol table and only return an array or an error
 	-that logic is now handled in index.ts
 	- I need to remember to moves all lexing logic to lexer.ts from index.ts later
@@ -17,7 +63,7 @@ April 21st:
 	-I've initialized a static table, later I'll need a jump table when working on conditional statements
 	-now let's work on traversing the AST and using case switch statements to fill the code array and static table
 	-I'm wondering if I even needed the scope tree...
-	
+
 
 ---------------------------------------------------------------------------------------------------------
 
