@@ -3,30 +3,26 @@ import { Scope } from './scopeAnalyzer.js';
 
 
 class Static {
-    temp: number;
-    id: string;
-    address: number;
+    name: string;
+    id: string; //variable name
+    scope: number;
+    size: number; //not using length to avoid static.length vs static[].length confusion
+    locations: number[] = []
 
-    constructor(temp: number, id: string, address: number) {
-        this.temp = temp;
+    constructor(id: string, scope: number, size: number) {
         this.id = id;
-        this.address = address;
+        this.scope = scope;
+        this.size = size;
+        this.name = `${id}@${scope}`; //for clean debug
     }
 
 }
+
+function staticEntry(id: string, scope: number, size: number) {
+    
+}
+
 const staticTable: Static[] = []
-
-
-
-function staticEntry() {
-    if (staticTable.length == 0) {
-        const newStatic = new Static()
-
-    }
-    else {
-
-    }
-}
 
 export function generateCode(ast: Tree, scopeTree: Scope): number[] {
     const code: number[] = new Array(256).fill(0x00);
@@ -48,11 +44,6 @@ export function generateCode(ast: Tree, scopeTree: Scope): number[] {
                     case "int":
                         code[codeIndex++] = 0xA9;
                         code[codeIndex++] = 0x00;
-                        const newStatic = new Static(staticIndex++, node.children[1].name, 0)
-
-                        staticTable[staticIndex] = newStatic
-                        console.log(
-                            staticTable[staticTable.length-1].id);
                         break;
                 }
                 break;

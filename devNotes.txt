@@ -1,6 +1,25 @@
 
 QUESTIONS:
 
+---------------------------------------------------------------------------------------------------------
+April 25th
+
+	-Let's backtrack now, after some thought I think the alternate approach to the static table will work better, where the static object itself knows all the positions it belongs
+	-let's also finalize everything the static table needs to do accounting for multi scope and loops
+	static object:
+		-variable's name
+		-scope
+			-these two form the primary key for the variable
+		-length (how many spots does it need in memory)
+		-locations[] (this should be an array or list)
+	-The static table will be an array of these objects
+	-ok now let's build out the static class and some helper functions
+	-When we come across a variable we need to see if it exists in the table before entering it
+	-the primary key for a variable is its name and scope
+	-To check scope I'll need a way to check my postion in the scope tree as I traverse the AST
+	-
+
+
 
 ---------------------------------------------------------------------------------------------------------
 April 22nd:
@@ -39,6 +58,7 @@ April 22nd:
 					-newAdd = ...
 
 				-hmm address is more like offset
+				-how is it ACTUALLY used?
 
 		-side note with additional scope we can have more than 26 unique variables
 			-two letters gives us 26^2 so 676 

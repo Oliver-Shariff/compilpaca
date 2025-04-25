@@ -70,6 +70,8 @@ function handleLexing() {
                         }
                         else {
                             //call generate code here
+                            console.log(`scope tree below`);
+                            console.log(rootScope);
                             const code = generateCode(ast, rootScope);
                             outputLog += `<span class="success">INFO Code Gen - Code successfully generated:</span>\n`;
                             //ChatGPT helped me print this cleanly
