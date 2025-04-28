@@ -2,6 +2,15 @@
 QUESTIONS:
 
 ---------------------------------------------------------------------------------------------------------
+April 28th
+
+	-added value to static Obkect
+	-gnerating code at this point require AST and scope tree traversal, We could geneate code at the same time as semantic analysis but that is not a modular approach
+	-There mus tbe an easier way to check scope while traversing the AST
+	-Can semanticAnalyzer add a scope level/id to the TreeNode while building the scope tree?
+	-this was code gen can just take in the AST
+
+---------------------------------------------------------------------------------------------------------
 April 25th
 
 	-Let's backtrack now, after some thought I think the alternate approach to the static table will work better, where the static object itself knows all the positions it belongs
