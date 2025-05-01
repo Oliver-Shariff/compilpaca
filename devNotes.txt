@@ -1,8 +1,14 @@
 
 QUESTIONS:
+---------------------------------------------------------------------------------------------------------
+May 1st - Code gen
+
+	-Alright scope is working now, let's work on single scope code gen first
+	-For var decls I have int string and bool
+	
 
 ---------------------------------------------------------------------------------------------------------
-May 1st
+May 1st - Scope fixes
 
 	-OK we can decorate the AST to handle code gen but first I need to fix the scope/type issues
 	-All the issues boil down to type enforecement
@@ -13,6 +19,7 @@ May 1st
 		-ok I fixed that
 	-alright type enforcement is handled now, I had to write a helper function that checks the inherent type
 	-this function also needs to use recursion for nested assignment statements like boolexprs and intexprs
+	-Lets change scopeLevel to scopeId - that way parallel scopes are not confused
 ---------------------------------------------------------------------------------------------------------
 April 28th
 

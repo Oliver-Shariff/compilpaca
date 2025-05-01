@@ -13,11 +13,11 @@ class Scope {
     symbols: Map<string, SymbolInfo> = new Map(); //map variable to it's info
     parent: Scope | null; // pointer to parent scope, null if global
     children: Scope[] = []; // list of children scope
-    level: number; // depth of scope
+    id: number; // unique id
 
-    constructor(parent: Scope | null, level: number) {
+    constructor(parent: Scope | null, id: number) {
         this.parent = parent;
-        this.level = level;
+        this.id = id;
     }
 
     addChild(scope: Scope) {
@@ -40,14 +40,14 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
     const scopeLog: string[] = [];
     const warningLog: string[] = [];
     const errors: string[] = [];
+    let scopeIdCounter = 0;
 
 
     const rootScope = new Scope(null, 0);
     let currentScope = rootScope;
-    let scopeLevel = -1;// set this to negative one so the first scope is 0
 
     function enterScope() {
-        const newScope = new Scope(currentScope, ++scopeLevel);//current as parent
+        const newScope = new Scope(currentScope, scopeIdCounter++);//current as parent
         currentScope.addChild(newScope); //new scope as child to prev
         currentScope = newScope;
     }
@@ -55,7 +55,6 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
     function exitScope() {
         if (currentScope.parent) { //if parent exists
             currentScope = currentScope.parent; // make parent scope current scope
-            scopeLevel--; //decrement scope level
         }
     }
 
@@ -99,6 +98,9 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
 
 
     function visit(node: TreeNode): void {
+
+        node.scopeId = currentScope.id;
+
         switch (node.name) {
 
             case "[Block]":
@@ -255,7 +257,7 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
                             <td>${symbol.type}</td>
                             <td>${symbol.isInitialized}</td>
                             <td>${symbol.isUsed}</td>
-                            <td>${s.level}</td>
+                            <td>${s.id}</td>
                          </tr>`;
             }
             for (const child of s.children) {

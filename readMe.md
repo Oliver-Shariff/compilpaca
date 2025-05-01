@@ -12,6 +12,15 @@ To see my thoughts and notes throughout this project you can read my commits, co
 
 ## Semantic Analysis - AST test cases
 
+## Parallel scopes
+    {
+        {int a int b }
+        {int a }
+    int a
+        {int c}
+    }$
+
+
 ## Nested assignment statements
     {
         boolean d

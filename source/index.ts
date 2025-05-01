@@ -70,20 +70,19 @@ function handleLexing() {
                         }
                         else {
                             //call generate code here
-                            console.log(`scope tree below`);
-                            console.log(rootScope);
                             const code = generateCode(ast, rootScope);
                             outputLog += `<span class="success">INFO Code Gen - Code successfully generated:</span>\n`;
-                            //ChatGPT helped me print this cleanly
-
                             outputLog += `<pre class="code">`;
 
                             for (let i = 0; i < code.length; i++) {
                                 const hex = code[i].toString(16).toUpperCase().padStart(2, '0');
-                                outputLog += hex + " ";
+                                outputLog += hex;
 
-                                if ((i + 1) % 8 === 0) {
-                                    outputLog += "\n";
+                                const isEndOfRow = (i + 1) % 8 === 0;
+                                const isLastByte = i === code.length - 1;
+
+                                if (!isLastByte) {
+                                    outputLog += isEndOfRow ? "\n" : " ";
                                 }
                             }
 
