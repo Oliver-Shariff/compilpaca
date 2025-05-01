@@ -63,10 +63,10 @@ function handleLexing() {
 
                         outputLog += scopeLog.map(line => `<span class="info">${line}</span>\n`).join("");
 
-                        const scopeError = scopeLog.some(line => line.includes("Scope Errors:"));
+                        const scopeError = scopeLog.some(line => line.includes("FAIL"));
 
                         if (scopeError) {
-                            outputLog += `<span class ="error"> ERROR Code Gen - Code Gen Skipped due to scope errors`
+                            outputLog += `<span class ="error">ERROR Code Gen - Code Gen Skipped due to scope errors`
                         }
                         else {
                             //call generate code here

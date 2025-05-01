@@ -124,7 +124,7 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
                     });
 
                     if (!added) {
-                        errors.push(` Error: Variable '${name}' redeclared in same scope at line ${line}, col ${column}`);
+                        errors.push(`Declaration error: Variable '${name}' redeclared in same scope at line ${line}, col ${column}`);
                     }
                 }
                 break;
@@ -137,7 +137,7 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
 
                 const symbol = currentScope.lookup(name);
                 if (!symbol) {
-                    errors.push(`Error: Undeclared variable '${name}' assigned at line ${line}, col ${column}`);
+                    errors.push(`Undeclared variable '${name}' assigned at line ${line}, col ${column}`);
                 } else {
                     const assignedType = checkType(valueNode, currentScope);
                     if (assignedType === "typeerror") {
@@ -172,7 +172,7 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
                 if (node.children.length === 0 && /^[a-z]$/.test(node.name)) {//regex matching var name
                     const symbol = currentScope.lookup(node.name);
                     if (!symbol) {
-                        errors.push(` Error: Variable '${node.name}' used without declaration at line ${node.line}, col ${node.column}`);
+                        errors.push(`Declaration Error: Variable '${node.name}' used without declaration at line ${node.line}, col ${node.column}`);
                     } else {
                         symbol.isUsed = true;
                     }
@@ -189,8 +189,8 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
     }
     //Start Error, warning, Success Logs
     if (errors.length) {
-        scopeLog.push(`<span class="error"> Scope Errors:</span>`);
-        for (const err of errors) scopeLog.push(`<span class="error"> ${err}</span>`);
+        scopeLog.push(`<span class="fail">FAIL Semantic Analyzer failed with ${errors.length} scope error(s):</span>`);
+        for (const err of errors) scopeLog.push(`<span class="error">${err}</span>`);
         scopeLog.push(`\n`);
     } else {
         scopeLog.push(`<span class="success">INFO Semantic Analyzer - No scope errors found.</span>`);
@@ -200,7 +200,7 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
     collectWarnings(rootScope);
 
     if (warningLog.length > 0) {
-        scopeLog.push(`<span class="warning"> Scope Warnings:</span>`);
+        scopeLog.push(`<span class="warning">Scope Warnings:</span>`);
         for (const warn of warningLog) {
             scopeLog.push(warn);
         }
@@ -215,15 +215,15 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
             const { name, line, column, isInitialized, isUsed } = symbol;
 
             if (!isUsed) {
-                warningLog.push(`<span class="warning"> '${name}' declared at line ${line}, col ${column} but never used.</span>`);
+                warningLog.push(`<span class="warning">'${name}' declared at line ${line}, col ${column} but never used.</span>`);
             }
 
             if (isUsed && !isInitialized) {
-                warningLog.push(`<span class="warning"> '${name}' used at line ${line}, col ${column} before being initialized.</span>`);
+                warningLog.push(`<span class="warning">'${name}' used at line ${line}, col ${column} before being initialized.</span>`);
             }
 
             if (isInitialized && !isUsed) {
-                warningLog.push(`<span class="warning"> '${name}' initialized at line ${line}, col ${column} but never used.</span>`);
+                warningLog.push(`<span class="warning">'${name}' initialized at line ${line}, col ${column} but never used.</span>`);
             }
         }
 
@@ -235,7 +235,7 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
 
 
     //Symbol Table Display
-    scopeLog.push(`<span class="info"> Symbol Table:</span>`);
+    scopeLog.push(`<span class="info">Symbol Table:</span>`);
     scopeLog.push(generateSymbolHTMLTable(rootScope));
 
     function generateSymbolHTMLTable(scope: Scope): string {
