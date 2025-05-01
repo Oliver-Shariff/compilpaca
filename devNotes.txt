@@ -5,6 +5,14 @@ May 1st - Code gen
 
 	-Alright scope is working now, let's work on single scope code gen first
 	-For var decls I have int string and bool
+	-for now I'll handle int and bool the same way for intialization
+	other cases:
+		-Assignments
+		-Expressions
+		-Print
+		-If / While
+		-String handling
+		-Final memory (fillStatic)
 	
 
 ---------------------------------------------------------------------------------------------------------

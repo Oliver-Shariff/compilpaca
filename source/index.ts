@@ -37,7 +37,6 @@ function handleLexing() {
             }
             else {
                 const { cst, logs, pass } = parse(tokens);
-                console.log(`program : ${programCount} pass state is ${pass}`)
                 outputLog += `\n<span class="info">INFO Parser - Parsing program ${programCount}...</span>\n`;
                 // Append parser logs to output
                 outputLog += logs.join("\n"); // UNCOMMENT THIS!
@@ -45,15 +44,11 @@ function handleLexing() {
                 if (pass && cst) {
                     outputLog += `\n<span class="info">INFO Parser - Concrete Syntax Tree Program ${programCount}:</span>\n`;
                     outputLog += cst.toString() + "\n"; //UNCOMMENT THIS!
-                    console.log(cst);
                     outputLog += `<span class="success">INFO Parse - Concrete Syntax Tree for Program ${programCount} generated! </span>\n`;
 
 
                     const ast = buildAST(cst);
                     if (ast) {
-                        console.log("below should be AST");
-                        console.log(ast.toString());
-                        console.log(ast)
                         outputLog += `\n<span class="info">INFO Semantic Analyzer - Abstract Syntax Tree Program ${programCount}:</span>\n`;
                         outputLog += ast.toString() + "\n";
                         outputLog += `<span class="success">INFO Semantic Analyzer - Abstract Syntax Tree for Program ${programCount} generated! </span>\n`;
@@ -70,7 +65,7 @@ function handleLexing() {
                         }
                         else {
                             //call generate code here
-                            const code = generateCode(ast, rootScope);
+                            const code = generateCode(ast);
                             outputLog += `<span class="success">INFO Code Gen - Code successfully generated:</span>\n`;
                             outputLog += `<pre class="code">`;
 
@@ -89,8 +84,6 @@ function handleLexing() {
                             outputLog += `</pre>\n`;
                         }
 
-                    } else {
-                        console.log("No AST generated")
                     }
                 } else {
                     outputLog += `<span class="error">ERROR Parser - Parsing failed. No CST generated.</span>\n`;
@@ -104,10 +97,7 @@ function handleLexing() {
         inputCode = remainingInput;
         line = nextLine;
         column = nextColumn;
-        console.log(tokens) // I can call the parse tokens function here
-
-
-    }
+        }
 
 
     outputElement.innerHTML = outputLog;

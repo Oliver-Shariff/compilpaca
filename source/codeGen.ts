@@ -7,25 +7,18 @@ class Static {
     id: string; //variable name
     scope: number;
     size: number; //not using length to avoid static.length vs static[].length confusion
-    locations: number[] = []
-    value: number;
+    locations: number[] = [] //all the target locations in code array that need to be overwritten
+    value: number; // the actual mem location of the variable
     
-    constructor(id: string, scope: number, size: number, value: number) {
+    constructor(id: string, scope: number, size?: number) {
         this.id = id;
         this.scope = scope;
         this.size = size;
         this.name = `${id}@${scope}`; //for clean debug
-        this.value = value;
 
     }
     
 }
-
-function staticEntry(staticObj: Static, location: number) {
-    staticObj.locations.push(location);
-    
-}
-
 function addLocation(name: string, location: number){
     for (let i = 0; i < staticTable.length; i++ ){
         if (staticTable[i].name == name){
@@ -45,7 +38,7 @@ export function generateCode(ast: Tree): number[] {
     let staticIndex = 0;
     
     function visit(node: TreeNode): void {
-        console.log(`switch on ${node.name}`);
+//        console.log(`switch on ${node.name}`);
         
         switch (node.name) {
 
@@ -57,17 +50,22 @@ export function generateCode(ast: Tree): number[] {
             case "[VariableDeclaration]": {
                 let type = node.children[0].name;
                 let id = node.children[1].name;
-                console.log(`switch on ${type}`);
+                let scope = node.scopeId
                 switch (type) {
+                    case "boolean":
                     case "int":
                         code[codeIndex++] = 0xA9;//load acc with const
                         code[codeIndex++] = 0x00;//initialize to zero
                         code[codeIndex++] = 0x8D; //store acc in memory
-                        const newStatic = new Static(id,node.scopeId, 1, 0xFF); //create the static entry since this is a var decl
+                        const newStatic = new Static(id,scope, 1); //create the static entry since this is a var decl
                         staticTable[staticIndex++] = newStatic;//add the static object to the static table
-                        let name = `${id}@${node.scopeId}`
+                        let name = `${id}@${scope}`
                         addLocation(name,codeIndex++)//update the locations this object holds
                         code[codeIndex++] = 0x00;
+                        break;
+                    case "string":
+                        const stringStatic = new Static(id,scope)
+                        staticTable[staticIndex++] = stringStatic;
                         break;
                 }
                 break;
@@ -80,7 +78,7 @@ export function generateCode(ast: Tree): number[] {
         for(let i = 0; i < staticTable.length; i++){//for every entry in the static table
             //I need to add logic here to handle strings which are longer than 1 location
             staticTable[i].value = codeIndex++;// after visit is over this will be the first free location
-            for(let j = 0; j < staticTable[i].locations.length; j++){//at each taget location saved
+            for(let j = 0; j < staticTable[i].locations.length; j++){//at each target location saved
                 code[staticTable[i].locations[j]] = staticTable[i].value; //write the value at the target location
             }
         }
