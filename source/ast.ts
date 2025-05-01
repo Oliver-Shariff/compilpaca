@@ -83,9 +83,8 @@ export function buildAST(cst: Tree): Tree {
             case "[StringExpression]": {
                 const charListNode = node.children[1]; // skip opening quote
                 const strValue = extractString(charListNode);
-                if (strValue) {
-                    astTree.addNode(`"${strValue}"`, "leaf", node.line, node.column);
-                }
+                //removed if(strValue) to allow empty strings
+                astTree.addNode(`"${strValue}"`, "leaf", node.line, node.column);
                 break;
             }
 

@@ -2,6 +2,17 @@
 QUESTIONS:
 
 ---------------------------------------------------------------------------------------------------------
+May 1st
+
+	-OK we can decorate the AST to handle code gen but first I need to fix the scope/type issues
+	-All the issues boil down to type enforecement
+	-I'm pulling out the node for the "value" in an assignment statement
+	-It doesn't work for addition because of nesting but I can fix that later with some kind of helper function
+	-I need some logic that infers the type of the value
+	-hmm I realized that assigning an empty string breaks this too
+		-ok I fixed that
+	-alright type enforcement is handled now
+---------------------------------------------------------------------------------------------------------
 April 28th
 
 	-added value to static Obkect

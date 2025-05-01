@@ -36,11 +36,11 @@ class Scope {
     }
 }
 
-export function analyzeScope(ast: Tree): {log: string[], rootScope: Scope}{
+export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
     const scopeLog: string[] = [];
     const warningLog: string[] = [];
     const errors: string[] = [];
-    
+
 
     const rootScope = new Scope(null, 0);
     let currentScope = rootScope;
@@ -58,6 +58,45 @@ export function analyzeScope(ast: Tree): {log: string[], rootScope: Scope}{
             scopeLevel--; //decrement scope level
         }
     }
+
+    function checkType(node: TreeNode, currentScope: Scope): string {
+        if (!node) return "unknown";
+
+        // Literal booleans
+        if (node.name === "true" || node.name === "false") return "boolean";
+
+        // Literal numbers
+        if (/^\d+$/.test(node.name)) return "int";
+
+        // Quoted string literal
+        if (/^".*"$/.test(node.name)) return "string";
+
+        // Variable name
+        if (/^[a-z]$/.test(node.name)) {
+            const symbol = currentScope.lookup(node.name);
+            return symbol?.type ?? "unknown";
+        }
+
+        // Expressions
+        switch (node.name) {
+            case "[Addition]": {
+                const left = checkType(node.children[0], currentScope);
+                const right = checkType(node.children[1], currentScope);
+                if (left === "int" && right === "int") return "int";
+                return "typeerror";
+            }
+            case "[Equals]":
+            case "[NotEquals]": {
+                const left = checkType(node.children[0], currentScope);
+                const right = checkType(node.children[1], currentScope);
+                if (left === right) return "boolean";
+                return "typeerror";
+            }
+            default:
+                return "unknown";
+        }
+    }
+
 
     function visit(node: TreeNode): void {
         switch (node.name) {
@@ -92,6 +131,7 @@ export function analyzeScope(ast: Tree): {log: string[], rootScope: Scope}{
             }
             case "[AssignmentStatement]": {
                 const idNode = node.children[0];
+                const valueNode = node.children[1];
                 const name = idNode?.name;
                 const { line, column } = idNode;
 
@@ -99,13 +139,20 @@ export function analyzeScope(ast: Tree): {log: string[], rootScope: Scope}{
                 if (!symbol) {
                     errors.push(`Error: Undeclared variable '${name}' assigned at line ${line}, col ${column}`);
                 } else {
-                    symbol.isInitialized = true;
+                    const assignedType = checkType(valueNode, currentScope);
+                    if (assignedType === "typeerror") {
+                        errors.push(`Type mismatch in assignment to '${name}' at line ${line}, col ${column}`);
+                    } else if (assignedType !== symbol.type) {
+                        errors.push(`Type mismatch: cannot assign ${assignedType} to ${symbol.type} '${name}' at line ${line}, col ${column}`);
+                    } else {
+                        symbol.isInitialized = true;
+                    }
                 }
 
-
-                visit(node.children[1]); // RHS
+                visit(valueNode); 
                 break;
             }
+
             case "[PrintStatement]":
                 visit(node.children[0]);
                 break;
@@ -186,6 +233,7 @@ export function analyzeScope(ast: Tree): {log: string[], rootScope: Scope}{
     }
     //End Error, warning, Success Logs
 
+
     //Symbol Table Display
     scopeLog.push(`<span class="info"> Symbol Table:</span>`);
     scopeLog.push(generateSymbolHTMLTable(rootScope));
@@ -225,7 +273,7 @@ export function analyzeScope(ast: Tree): {log: string[], rootScope: Scope}{
     return {
         log: scopeLog,
         rootScope: rootScope,
-      
+
     };
 }
 
