@@ -11,7 +11,8 @@ May 1st
 	-I need some logic that infers the type of the value
 	-hmm I realized that assigning an empty string breaks this too
 		-ok I fixed that
-	-alright type enforcement is handled now
+	-alright type enforcement is handled now, I had to write a helper function that checks the inherent type
+	-this function also needs to use recursion for nested assignment statements like boolexprs and intexprs
 ---------------------------------------------------------------------------------------------------------
 April 28th
 
