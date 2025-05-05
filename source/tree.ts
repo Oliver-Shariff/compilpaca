@@ -61,9 +61,9 @@ class Tree {
         const expand = (node: TreeNode, depth: number): void => {
             traversalResult += "-".repeat(depth);
             if (node.children.length === 0) {
-                traversalResult += `[${node.name}]\n`;
+                traversalResult += `[${node.name}]@${node.scopeId}\n`;
             } else {
-                traversalResult += `<${node.name}> \n`;
+                traversalResult += `<${node.name}>@${node.scopeId} \n`;
                 node.children.forEach(child => expand(child, depth + 1));
             }
         };

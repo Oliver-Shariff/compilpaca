@@ -1,5 +1,12 @@
-
 QUESTIONS:
+
+---------------------------------------------------------------------------------------------------------
+May 2nd
+
+	-Assignment, expressionsm strings and heap memory handled
+	- Let's work on print statements so I can test these properly
+	-
+
 ---------------------------------------------------------------------------------------------------------
 May 1st - Code gen
 

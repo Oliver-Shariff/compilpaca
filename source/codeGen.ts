@@ -135,14 +135,16 @@ export function generateCode(ast: Tree): number[] {
                     const raw = valueNode.name.slice(1, -1);
                     target.stringValue = raw;
 
+                    /*
                     code[codeIndex++] = 0xA9;
-                    addLocation(target.name, codeIndex);
-                    code[codeIndex++] = 0x00;
-
-                    code[codeIndex++] = 0x8D;
-                    addLocation(target.name, codeIndex);
-                    code[codeIndex++] = 0x00;
-                    code[codeIndex++] = 0x00;
+                     addLocation(target.name, codeIndex);
+                     code[codeIndex++] = 0x00;
+ 
+                     code[codeIndex++] = 0x8D;
+                     addLocation(target.name, codeIndex);
+                     code[codeIndex++] = 0x00;
+                     code[codeIndex++] = 0x00;
+                     */
                 } else {
                     generateExpression(valueNode);
                     code[codeIndex++] = 0x8D;
@@ -153,7 +155,50 @@ export function generateCode(ast: Tree): number[] {
 
                 break;
             }
-            
+            case "[PrintStatement]": {
+                const expr = node.children[0];
+
+                if (/^".*"$/.test(expr.name)) {
+                    const raw = expr.name.slice(1, -1);
+                    const tempName = `_strlit@${codeIndex}`;
+                    const tempStatic = new Static(tempName, 0);
+                    tempStatic.stringValue = raw;
+                    staticTable.push(tempStatic);
+
+                    // Set up for SYS call
+                    code[codeIndex++] = 0xA2; // LDX #$02 (print string)
+                    code[codeIndex++] = 0x02;
+
+                    code[codeIndex++] = 0xA0; // LDY tempStatic
+                    addLocation(tempStatic.name, codeIndex);
+                    code[codeIndex++] = 0x00;
+
+                    code[codeIndex++] = 0xFF; // SYS
+                }
+
+                else if (/^[a-z]$/.test(expr.name)) {
+                    const name = `${expr.name}@${expr.scopeId}`;
+                    const ref = staticTable.find(e => e.name === name);
+                    if (!ref) throw new Error(`Undeclared variable '${name}' in print`);
+
+                    code[codeIndex++] = 0xA2; // LDX #$02 (print string)
+                    code[codeIndex++] = 0x02;
+
+                    code[codeIndex++] = 0xA0; // LDY <addr of var>
+                    addLocation(ref.name, codeIndex);
+                    code[codeIndex++] = 0x00;
+
+                    code[codeIndex++] = 0xFF; // SYS
+                }
+
+                else {
+                    throw new Error(`Unsupported print target: ${expr.name}`);
+                }
+
+                break;
+            }
+
+
 
 
             default:
@@ -182,8 +227,8 @@ export function generateCode(ast: Tree): number[] {
 
     if (ast.root) {
         visit(ast.root);
-        fillStatic();
         code[codeIndex++] = 0x00; //BRK
+        fillStatic();
     }
 
 
