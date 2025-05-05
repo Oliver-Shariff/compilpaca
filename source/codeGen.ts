@@ -21,6 +21,10 @@ class Static {
 
 }
 const staticTable: Static[] = []
+const code: number[] = new Array(256).fill(0x00);
+let codeIndex = 0;
+let staticIndex = 0;
+let tempCounter = 0;
 
 
 
@@ -30,54 +34,92 @@ function addLocation(name: string, location: number) {
             staticTable[i].stackTargets.push(location);
         }
     }
-
 }
 
+function generateBaseExpression(node: TreeNode): void {
+    if (node.name === "[Addition]") {
+        //left must be digit
+        //right is digit addition, or id
+        let left = node.children[0];
+        let right = node.children[1];
+        code[codeIndex++] = 0xA9;
+        code[codeIndex++] = parseInt(left.name);
+        code[codeIndex++] = 0x8D;
+        const tempAdd = new Static(`temp${tempCounter}`, 0); // create a temp static to hold addition during process
+        staticTable[staticIndex++] = tempAdd;
+        addLocation(tempAdd.name, codeIndex);
+        code[codeIndex++] = 0x00;
+        code[codeIndex++] = 0x00;
+        if (/^\d+$/.test(right.name)) {// right = digit
+            code[codeIndex++] = 0xA9;
+            code[codeIndex++] = parseInt(left.name);
+            code[codeIndex++] = 0x6D;
+            addLocation(tempAdd.name, codeIndex);
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x00;
+        }
+        else if (right.name === "[Addition]") {
+            generaterRecurseExpression(right);
+        }
+    } else if (/^[a-z]$/.test(node.name)) {
+        const ref = findScopeFromAST(node.name, node);
+        if (!ref) throw new Error(`Var '${node.name}' not found`);
+        code[codeIndex++] = 0xAD;
+        addLocation(ref.name, codeIndex);
+        code[codeIndex++] = 0x00;
+        code[codeIndex++] = 0x00;
+    }
+}
+function generaterRecurseExpression(node: TreeNode): void {
+    if (node.name === "[Addition]") {
+        //left must be digit
+        //right is digit addition, or id
+        let left = node.children[0];
+        let right = node.children[1];
+        code[codeIndex++] = 0xA9;
+        code[codeIndex++] = parseInt(left.name);
+        code[codeIndex++] = 0x6D;
+        const tempAdd = new Static(`temp${tempCounter}`, 0); // create a temp static to hold addition during process
+        staticTable[staticIndex++] = tempAdd;
+        addLocation(tempAdd.name, codeIndex);
+        code[codeIndex++] = 0x00;
+        code[codeIndex++] = 0x00;
+        if (/^\d+$/.test(right.name)) {// right = digit
+            code[codeIndex++] = 0xA9;
+            code[codeIndex++] = parseInt(left.name);
+            code[codeIndex++] = 0x6D;
+            addLocation(tempAdd.name, codeIndex);
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x00;
+        }
+        else if (right.name === "[Addition]") {
+            generaterRecurseExpression(right);
+        }
+    } else if (/^[a-z]$/.test(node.name)) {
+        const ref = findScopeFromAST(node.name, node);
+        if (!ref) throw new Error(`Var '${node.name}' not found`);
+        code[codeIndex++] = 0xAD;
+        addLocation(ref.name, codeIndex);
+        code[codeIndex++] = 0x00;
+        code[codeIndex++] = 0x00;
+    }
+}
+
+function findScopeFromAST(varName: string, node: TreeNode): Static | undefined {
+    let current: TreeNode | null = node;
+
+    while (current !== null) {
+        if (current.scopeId !== undefined) {
+            const candidate = staticTable.find(entry => entry.name === `${varName}@${current.scopeId}`);
+            if (candidate) return candidate;
+        }
+        current = current.parent;
+    }
+
+    return undefined;
+}
 export function generateCode(ast: Tree): number[] {
-    const code: number[] = new Array(256).fill(0x00);
-    let codeIndex = 0;
-    let staticIndex = 0;
 
-    function generateExpression(node: TreeNode): void {
-        if (
-            node.name === "[Addition]") {
-            generateExpression(node.children[0]);
-
-            const right = node.children[1]; //right side of the expression
-
-            if (/^\d+$/.test(right.name)) { //number literal
-                code[codeIndex++] = 0x6D; // ADC #val
-                code[codeIndex++] = parseInt(right.name);
-            }
-        } else if (/^[a-z]$/.test(node.name) && node.type != "string") {
-            const ref = staticTable.find(e => e.name === `${node.name}@${node.scopeId}`);
-            if (!ref) throw new Error(`Var '${node.name}' not found`);
-            code[codeIndex++] = 0xAD;
-            addLocation(ref.name, codeIndex);
-            code[codeIndex++] = 0x00;
-            code[codeIndex++] = 0x00;
-        } 
-        else if(/^[a-z]$/.test(node.name) && node.type == "string"){
-            
-        }
-        else {
-            throw new Error(`Unhandled expr: ${node.name}`);
-        }
-    }
-
-    function findScopeFromAST(varName: string, node: TreeNode): Static | undefined {
-        let current: TreeNode | null = node;
-
-        while (current !== null) {
-            if (current.scopeId !== undefined) {
-                const candidate = staticTable.find(entry => entry.name === `${varName}@${current.scopeId}`);
-                if (candidate) return candidate;
-            }
-            current = current.parent;
-        }
-
-        return undefined;
-    }
 
 
 
@@ -125,15 +167,25 @@ export function generateCode(ast: Tree): number[] {
                     target.stringValue = raw;
 
                 }
-                else if(idNode.type == "boolean"){
+                else if (idNode.type == "boolean") {
 
                 }
-                else { //integer, addition, id assignment
-                    generateExpression(valueNode);
+                else if (/^\d+$/.test(valueNode.name)) { //single digit no addition
+                    code[codeIndex++] = 0xA9;
+                    code[codeIndex++] = parseInt(valueNode.name);
                     code[codeIndex++] = 0x8D;
-                    addLocation(target.name, codeIndex);
+                    addLocation(target.name,codeIndex);
                     code[codeIndex++] = 0x00;
                     code[codeIndex++] = 0x00;
+                }
+                else { //addition or id assignment
+                    generateBaseExpression(valueNode);
+                    /*                   
+                                        code[codeIndex++] = 0x8D;
+                                        addLocation(target.name, codeIndex);
+                                        code[codeIndex++] = 0x00;
+                                        code[codeIndex++] = 0x00;
+                     */
                 }
 
                 break;
@@ -160,17 +212,31 @@ export function generateCode(ast: Tree): number[] {
                 }
 
                 else if (/^[a-z]$/.test(expr.name)) {
-                    const target = findScopeFromAST(expr.name, node);
-                    if (!target) throw new Error(`No static for ${expr.name} from scope ${node.scopeId}`);
+                    if (expr.type == "string") {
+                        const target = findScopeFromAST(expr.name, node);
+                        if (!target) throw new Error(`No static for ${expr.name} from scope ${node.scopeId}`);
 
-                    code[codeIndex++] = 0xA2; // LDX #$02 (print string)
-                    code[codeIndex++] = 0x02;
+                        code[codeIndex++] = 0xA2; // LDX #$02 (print string)
+                        code[codeIndex++] = 0x02;
 
-                    code[codeIndex++] = 0xA0; // LDY <addr of var>
-                    addLocation(target.name, codeIndex);
-                    code[codeIndex++] = 0x00;
+                        code[codeIndex++] = 0xA0; // LDY <addr of var>
+                        addLocation(target.name, codeIndex);
+                        code[codeIndex++] = 0x00;
 
-                    code[codeIndex++] = 0xFF; // SYS
+                        code[codeIndex++] = 0xFF; // SYS
+                    }
+                    else { //bool or int
+                        const target = findScopeFromAST(expr.name, node);
+                        code[codeIndex++] = 0xA2; // LDX #$02 (print string)
+                        code[codeIndex++] = 0x01;
+
+                        code[codeIndex++] = 0xAC; // LDY <addr of var>
+                        addLocation(target.name, codeIndex);
+                        code[codeIndex++] = 0x00;
+                        code[codeIndex++] = 0x00;
+                        code[codeIndex++] = 0xFF; // SYS
+
+                    }
                 }
 
                 else {

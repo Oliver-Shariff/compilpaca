@@ -185,6 +185,7 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
                     if (!symbol) {
                         errors.push(`Declaration Error: Variable '${node.name}' used without declaration at line ${node.line}, col ${node.column}`);
                     } else {
+                        node.type = symbol.type;
                         symbol.isUsed = true;
                     }
 
