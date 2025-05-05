@@ -2,10 +2,24 @@
 ---------------------------------------------------------------------------------------------------------
 May 5th: 
 
+	-Issue, string values are overwritted to their final value since they are written into the heap so code like
+	{    string c
+		c = "hello"
+		string d 
+		d = c
+		print(c)
+		print(d)
+	
+		d = "alan"
+		print(d)
+		}$
+
+	prints helloalanalan instead of hellohelloalan
+
 	-I'm realizing that my generate expression function doesn't work
 	Todo:
-		-fix interger addition
-		- fix strging assignment through id ex
+	DONE -fix interger addition
+	DONE - fix string assignment through id ex
 			string a a = "hello" string b b = a
 		-handle boolean intialization and assignment
 		-if statements

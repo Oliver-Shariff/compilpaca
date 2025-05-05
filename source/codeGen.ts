@@ -194,6 +194,11 @@ export function generateCode(ast: Tree): number[] {
                     code[codeIndex++] = 0x00;
                     code[codeIndex++] = 0x00;
                 }
+                else if(idNode.type == "string"){
+                    const refString = findScopeFromAST(valueNode.name,node)
+                    target.stringValue = refString.stringValue;
+
+                }
                 else { //addition or id assignment
                     generateBaseExpression(valueNode);
                     code[codeIndex++] = 0x8D;

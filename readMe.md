@@ -10,14 +10,28 @@ In its current state this program performs lexical analysis and parsing on input
 
 To see my thoughts and notes throughout this project you can read my commits, comments, and **devNotes.txt**.
 
-## CODE GEN - Nested assignment and print
+## CODE GEN 
 
-    {
-        string a
-        {
-            a = "hello world"
-            print(a)
+### Nested assignment and print
+
+   {
+    int a 
+    a = 3+4+5+6 
+        { 
+            int b
+            b = a
+            print (b)
         }
+        {
+            print (a)
+        }
+    string c
+    c = "hello"
+    string d
+    d = c
+    print(c)
+    print("hi")
+    print(d)
     }$
 
 ## Semantic Analysis - AST test cases
