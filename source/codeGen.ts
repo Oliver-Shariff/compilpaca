@@ -45,21 +45,27 @@ function generateBaseExpression(node: TreeNode): void {
         code[codeIndex++] = 0xA9;
         code[codeIndex++] = parseInt(left.name);
         code[codeIndex++] = 0x8D;
-        const tempAdd = new Static(`temp${tempCounter}`, 0); // create a temp static to hold addition during process
+        const tempAdd = new Static(`temp${tempCounter++}`, 0); // create a temp static to hold addition during process
         staticTable[staticIndex++] = tempAdd;
         addLocation(tempAdd.name, codeIndex);
         code[codeIndex++] = 0x00;
         code[codeIndex++] = 0x00;
         if (/^\d+$/.test(right.name)) {// right = digit
             code[codeIndex++] = 0xA9;
-            code[codeIndex++] = parseInt(left.name);
+            code[codeIndex++] = parseInt(right.name);
             code[codeIndex++] = 0x6D;
             addLocation(tempAdd.name, codeIndex);
             code[codeIndex++] = 0x00;
             code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x8D;
+            addLocation(tempAdd.name, codeIndex);
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x00;
+            /*
+            */
         }
         else if (right.name === "[Addition]") {
-            generaterRecurseExpression(right);
+            generaterRecurseExpression(right,tempAdd);
         }
     } else if (/^[a-z]$/.test(node.name)) {
         const ref = findScopeFromAST(node.name, node);
@@ -70,7 +76,7 @@ function generateBaseExpression(node: TreeNode): void {
         code[codeIndex++] = 0x00;
     }
 }
-function generaterRecurseExpression(node: TreeNode): void {
+function generaterRecurseExpression(node: TreeNode, tempAdd: Static): void {
     if (node.name === "[Addition]") {
         //left must be digit
         //right is digit addition, or id
@@ -79,21 +85,31 @@ function generaterRecurseExpression(node: TreeNode): void {
         code[codeIndex++] = 0xA9;
         code[codeIndex++] = parseInt(left.name);
         code[codeIndex++] = 0x6D;
-        const tempAdd = new Static(`temp${tempCounter}`, 0); // create a temp static to hold addition during process
         staticTable[staticIndex++] = tempAdd;
         addLocation(tempAdd.name, codeIndex);
         code[codeIndex++] = 0x00;
         code[codeIndex++] = 0x00;
+        code[codeIndex++] = 0x8D;
+        addLocation(tempAdd.name, codeIndex);
+        code[codeIndex++] = 0x00;
+        code[codeIndex++] = 0x00;
+
         if (/^\d+$/.test(right.name)) {// right = digit
             code[codeIndex++] = 0xA9;
-            code[codeIndex++] = parseInt(left.name);
+            code[codeIndex++] = parseInt(right.name);
             code[codeIndex++] = 0x6D;
             addLocation(tempAdd.name, codeIndex);
             code[codeIndex++] = 0x00;
             code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x8D;
+            addLocation(tempAdd.name, codeIndex);
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x00;
+            /*
+            */
         }
         else if (right.name === "[Addition]") {
-            generaterRecurseExpression(right);
+            generaterRecurseExpression(right,tempAdd);
         }
     } else if (/^[a-z]$/.test(node.name)) {
         const ref = findScopeFromAST(node.name, node);
@@ -180,12 +196,13 @@ export function generateCode(ast: Tree): number[] {
                 }
                 else { //addition or id assignment
                     generateBaseExpression(valueNode);
+                    code[codeIndex++] = 0x8D;
+                    addLocation(target.name, codeIndex);
+                    code[codeIndex++] = 0x00;
+                    code[codeIndex++] = 0x00;
                     /*                   
-                                        code[codeIndex++] = 0x8D;
-                                        addLocation(target.name, codeIndex);
-                                        code[codeIndex++] = 0x00;
-                                        code[codeIndex++] = 0x00;
                      */
+                    
                 }
 
                 break;
