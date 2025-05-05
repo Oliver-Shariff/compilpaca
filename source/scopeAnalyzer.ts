@@ -114,6 +114,9 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
                 const idNode = node.children[1];
                 const name = idNode?.name;
                 const { line, column } = idNode;
+                
+                node.children[0].scopeId = currentScope.id
+                node.children[1].scopeId = currentScope.id
 
                 if (name) {
                     const added = currentScope.declare({
@@ -136,6 +139,10 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
                 const valueNode = node.children[1];
                 const name = idNode?.name;
                 const { line, column } = idNode;
+
+                node.children[0].scopeId = currentScope.id
+                node.children[1].scopeId = currentScope.id
+
 
                 const symbol = currentScope.lookup(name);
                 if (!symbol) {
@@ -171,7 +178,7 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
                 for (const child of node.children) visit(child);
                 break;
             default:
-                if (node.children.length === 0 && /^[a-z]$/.test(node.name)) {//regex matching var name
+                if (node.children.length === 0 && /^[a-z]$/.test(node.name)) {//regex matching id
                     const symbol = currentScope.lookup(node.name);
                     if (!symbol) {
                         errors.push(`Declaration Error: Variable '${node.name}' used without declaration at line ${node.line}, col ${node.column}`);

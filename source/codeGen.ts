@@ -90,6 +90,21 @@ export function generateCode(ast: Tree): number[] {
         }
     }
 
+    function findScopeFromAST(varName: string, node: TreeNode): Static | undefined {
+        let current: TreeNode | null = node;
+
+        while (current !== null) {
+            if (current.scopeId !== undefined) {
+                const candidate = staticTable.find(entry => entry.name === `${varName}@${current.scopeId}`);
+                if (candidate) return candidate;
+            }
+            current = current.parent;
+        }
+
+        return undefined;
+    }
+
+
 
     function visit(node: TreeNode): void {
         //        console.log(`switch on ${node.name}`);
@@ -127,9 +142,8 @@ export function generateCode(ast: Tree): number[] {
             case "[AssignmentStatement]": {
                 const idNode = node.children[0];
                 const valueNode = node.children[1];
-                const name = `${idNode.name}@${node.scopeId}`;
-                const target = staticTable.find(entry => entry.name === name);
-                if (!target) throw new Error(`No static for ${name}`);
+                const target = findScopeFromAST(idNode.name, node);
+                if (!target) throw new Error(`No static for ${idNode.name} from scope ${node.scopeId}`);
 
                 if (/^".*"$/.test(valueNode.name)) { // string
                     const raw = valueNode.name.slice(1, -1);
@@ -177,15 +191,14 @@ export function generateCode(ast: Tree): number[] {
                 }
 
                 else if (/^[a-z]$/.test(expr.name)) {
-                    const name = `${expr.name}@${expr.scopeId}`;
-                    const ref = staticTable.find(e => e.name === name);
-                    if (!ref) throw new Error(`Undeclared variable '${name}' in print`);
+                    const target = findScopeFromAST(expr.name, node);
+                    if (!target) throw new Error(`No static for ${expr.name} from scope ${node.scopeId}`);
 
                     code[codeIndex++] = 0xA2; // LDX #$02 (print string)
                     code[codeIndex++] = 0x02;
 
                     code[codeIndex++] = 0xA0; // LDY <addr of var>
-                    addLocation(ref.name, codeIndex);
+                    addLocation(target.name, codeIndex);
                     code[codeIndex++] = 0x00;
 
                     code[codeIndex++] = 0xFF; // SYS

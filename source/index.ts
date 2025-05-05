@@ -65,6 +65,8 @@ function handleLexing() {
                             outputLog += `<span class ="error">ERROR Code Gen - Code Gen Skipped due to scope errors`
                         }
                         else {
+                            outputLog += `<span class="success">INFO Semantic Analyzer - Decorated AST for Program ${programCount} generated! </span>\n`;
+                            outputLog += ast.toDecoratedString() + "\n";
                             //call generate code here
                             const code = generateCode(ast);
                             outputLog += `<span class="success">INFO Code Gen - Code successfully generated:</span>\n`;

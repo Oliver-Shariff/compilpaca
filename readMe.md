@@ -10,9 +10,19 @@ In its current state this program performs lexical analysis and parsing on input
 
 To see my thoughts and notes throughout this project you can read my commits, comments, and **devNotes.txt**.
 
+## CODE GEN - Nested assignment and print
+
+    {
+        string a
+        {
+            a = "hello world"
+            print(a)
+        }
+    }$
+
 ## Semantic Analysis - AST test cases
 
-## Parallel scopes
+### Parallel scopes
     {
         {int a int b }
         {int a }
@@ -21,7 +31,7 @@ To see my thoughts and notes throughout this project you can read my commits, co
     }$
 
 
-## Nested assignment statements
+### Nested assignment statements
     {
         boolean d
         d = (true == (true == false))
@@ -32,21 +42,21 @@ To see my thoughts and notes throughout this project you can read my commits, co
         d = ("string" != "string")
     }$
 
-## Chained addition
+### Chained addition
 
     {
       int x
       x = 1 + 2 + 3
     }$
 
-## compare in print
+### Compare in print
 
     {
       print((1 == 1))
       print((x != 5))
     }$
 
-## nested blocks
+### Nested blocks
 
     {
       int a
@@ -67,7 +77,7 @@ To see my thoughts and notes throughout this project you can read my commits, co
         b = 3 + a
     }$
 
-## Print every type of expression
+### Print every type of expression
 
     {
         int b

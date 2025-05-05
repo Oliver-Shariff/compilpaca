@@ -61,9 +61,29 @@ class Tree {
         const expand = (node: TreeNode, depth: number): void => {
             traversalResult += "-".repeat(depth);
             if (node.children.length === 0) {
-                traversalResult += `[${node.name}]@${node.scopeId}\n`;
+                traversalResult += `[${node.name}]\n`;
             } else {
-                traversalResult += `<${node.name}>@${node.scopeId} \n`;
+                traversalResult += `<${node.name}>\n`;
+                node.children.forEach(child => expand(child, depth + 1));
+            }
+        };
+
+        if (this.root) {
+            expand(this.root, 0);
+        }
+
+        return traversalResult;
+    }
+
+    toDecoratedString(): string {
+        let traversalResult = "";
+
+        const expand = (node: TreeNode, depth: number): void => {
+            traversalResult += "-".repeat(depth);
+            if (node.children.length === 0) {
+                traversalResult += `[${node.name}] <span class="scope">@ ${node.scopeId}</span>\n`;
+            } else {
+                traversalResult += `<${node.name}> <span class="scope">@ ${node.scopeId}</span> \n`;
                 node.children.forEach(child => expand(child, depth + 1));
             }
         };
