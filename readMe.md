@@ -13,7 +13,7 @@ To see my thoughts and notes throughout this project you can read my commits, co
 ## CODE GEN 
 
 ### Nested assignment and print
-   {
+    {
     int a 
     a = 3+4+5+6 
         { 
