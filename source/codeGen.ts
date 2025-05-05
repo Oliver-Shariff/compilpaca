@@ -48,44 +48,19 @@ export function generateCode(ast: Tree): number[] {
             if (/^\d+$/.test(right.name)) { //number literal
                 code[codeIndex++] = 0x6D; // ADC #val
                 code[codeIndex++] = parseInt(right.name);
-            } else if (/^[a-z]$/.test(right.name)) { //variable
-                const ref = staticTable.find(e => e.name === `${right.name}@${node.scopeId}`);
-                if (!ref) throw new Error(`Var '${right.name}' not found`);
-                code[codeIndex++] = 0x6D;
-                addLocation(ref.name, codeIndex);
-                code[codeIndex++] = 0x00;
-                code[codeIndex++] = 0x00;
-            } else if (right.name === "[Addition]") { //nested addition
-                const tempVar = `_tmp${codeIndex}`;
-                const temp = new Static(tempVar, 0);
-                temp.heapLocation = codeIndex++;
-                staticTable.push(temp);
-
-                code[codeIndex++] = 0x8D;
-                addLocation(temp.name, codeIndex);
-                code[codeIndex++] = 0x00;
-                code[codeIndex++] = 0x00;
-
-                generateExpression(right);
-
-                code[codeIndex++] = 0x6D;
-                addLocation(temp.name, codeIndex);
-                code[codeIndex++] = 0x00;
-                code[codeIndex++] = 0x00;
-            } else {
-                throw new Error(`Unhandled RHS: ${right.name}`);
             }
-        } else if (/^\d+$/.test(node.name)) {
-            code[codeIndex++] = 0xA9;
-            code[codeIndex++] = parseInt(node.name);
-        } else if (/^[a-z]$/.test(node.name)) {
+        } else if (/^[a-z]$/.test(node.name) && node.type != "string") {
             const ref = staticTable.find(e => e.name === `${node.name}@${node.scopeId}`);
             if (!ref) throw new Error(`Var '${node.name}' not found`);
             code[codeIndex++] = 0xAD;
             addLocation(ref.name, codeIndex);
             code[codeIndex++] = 0x00;
             code[codeIndex++] = 0x00;
-        } else {
+        } 
+        else if(/^[a-z]$/.test(node.name) && node.type == "string"){
+            
+        }
+        else {
             throw new Error(`Unhandled expr: ${node.name}`);
         }
     }
@@ -145,21 +120,15 @@ export function generateCode(ast: Tree): number[] {
                 const target = findScopeFromAST(idNode.name, node);
                 if (!target) throw new Error(`No static for ${idNode.name} from scope ${node.scopeId}`);
 
-                if (/^".*"$/.test(valueNode.name)) { // string
+                if (/^".*"$/.test(valueNode.name)) { // string literal
                     const raw = valueNode.name.slice(1, -1);
                     target.stringValue = raw;
 
-                    /*
-                    code[codeIndex++] = 0xA9;
-                     addLocation(target.name, codeIndex);
-                     code[codeIndex++] = 0x00;
- 
-                     code[codeIndex++] = 0x8D;
-                     addLocation(target.name, codeIndex);
-                     code[codeIndex++] = 0x00;
-                     code[codeIndex++] = 0x00;
-                     */
-                } else {
+                }
+                else if(idNode.type == "boolean"){
+
+                }
+                else { //integer, addition, id assignment
                     generateExpression(valueNode);
                     code[codeIndex++] = 0x8D;
                     addLocation(target.name, codeIndex);

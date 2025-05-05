@@ -13,6 +13,7 @@ class TreeNode {
     line?: number;
     column?: number;
     scopeId?: number;
+    type?: string;
 
     constructor(name: string, parent: TreeNode | null = null, line?: number, column?: number) {
         this.name = name;

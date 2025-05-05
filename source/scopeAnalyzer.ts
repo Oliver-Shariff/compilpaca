@@ -154,6 +154,8 @@ export function analyzeScope(ast: Tree): { log: string[], rootScope: Scope } {
                     } else if (assignedType !== symbol.type) {
                         errors.push(`Type mismatch: cannot assign ${assignedType} to ${symbol.type} '${name}' at line ${line}, col ${column}`);
                     } else {
+                        idNode.type = symbol.type;
+                        valueNode.type = symbol.type;
                         symbol.isInitialized = true;
                     }
                 }

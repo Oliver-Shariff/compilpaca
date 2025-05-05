@@ -1,4 +1,16 @@
-QUESTIONS:
+
+---------------------------------------------------------------------------------------------------------
+May 5th: 
+
+	-I'm realizing that my generate expression function doesn't work
+	Todo:
+		-fix interger addition
+		- fix strging assignment through id ex
+			string a a = "hello" string b b = a
+		-handle boolean intialization and assignment
+		-if statements
+		-while statements
+
 
 ---------------------------------------------------------------------------------------------------------
 May 2nd

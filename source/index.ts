@@ -49,7 +49,6 @@ function handleLexing() {
 
                     const ast = buildAST(cst);
                     if (ast) {
-                        console.log(ast);
                         outputLog += `\n<span class="info">INFO Semantic Analyzer - Abstract Syntax Tree Program ${programCount}:</span>\n`;
                         outputLog += ast.toString() + "\n";
                         outputLog += `<span class="success">INFO Semantic Analyzer - Abstract Syntax Tree for Program ${programCount} generated! </span>\n`;
@@ -67,6 +66,7 @@ function handleLexing() {
                         else {
                             outputLog += `<span class="success">INFO Semantic Analyzer - Decorated AST for Program ${programCount} generated! </span>\n`;
                             outputLog += ast.toDecoratedString() + "\n";
+                            console.log(ast);
                             //call generate code here
                             const code = generateCode(ast);
                             outputLog += `<span class="success">INFO Code Gen - Code successfully generated:</span>\n`;
