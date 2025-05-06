@@ -12,6 +12,18 @@ To see my thoughts and notes throughout this project you can read my commits, co
 
 ## CODE GEN 
 
+### If statement string comparison
+
+    { string a string b
+        a = "hi"
+        b = a
+        if(b != a){
+            print("true")
+            }
+        print("false")
+    }$
+
+
 ### Nested assignment and print
     {
     int a 

@@ -305,7 +305,6 @@ export function generateCode(ast: Tree): number[] {
                         visit(right);
                     }
                     else if (!(/^".*"$/.test(left.name)) || !(/^".*"$/.test(right.name))) { //no string literal
-                     console.log("this runs")
                         if (left.type != "string") { //don't have to check right due to type checking
                             code[codeIndex++] = 0xAE;
                             if (!leftRef) throw new Error(`Undeclared variable '${left.name}'`);
@@ -360,6 +359,107 @@ export function generateCode(ast: Tree): number[] {
                 }
                 break;
             }
+            case "[WhileStatement]": {
+                //boolExpr left
+                //boolval
+                //OR
+                //Equals | NotEquals
+                //block right
+                let boolExpr = node.children[0];
+                let block = node.children[1];
+
+                if (/(true)/.test(boolExpr.name)) {
+                    //infinite loop
+                    const loopStart = codeIndex;
+                    visit(block);
+                    code[codeIndex++] = 0xD0;
+                    code[codeIndex++] = 256 - (codeIndex - loopStart); 
+                }
+                else if (/(false)/.test(boolExpr.name)) {
+                    //do nothing - skip block 
+                    break;
+                }
+                else if (boolExpr.name === "[NotEquals]" || boolExpr.name === "[Equals]") {
+                    let left = boolExpr.children[0];
+                    let right = boolExpr.children[1];
+                    const leftRef = findScopeFromAST(left.name, node);
+                    const rightRef = findScopeFromAST(right.name, node);
+                    if (left.name === "[NotEquals]" || left.name === "[Equals]") {
+                        visit(left);
+                    }
+                    if (right.name === "[NotEquals]" || right.name === "[Equals]") {
+                        visit(right);
+                    }
+                    else if (!(/^".*"$/.test(left.name)) || !(/^".*"$/.test(right.name))) { //no string literal
+                        if (left.type != "string") { //don't have to check right due to type checking
+                           
+                            // For [Equals], Z flag = 1 no skip, Z flag = 0 skip
+                            // For [NotEquals], Z flag = 1 skip, Z flag = 0 no skip
+
+                            if (boolExpr.name === "[Equals]") {
+                                if (boolExpr.name === "[Equals]") {
+                                    const loopStart = codeIndex;
+                                
+                                    // Load left into X
+                                    code[codeIndex++] = 0xAE;
+                                    addLocation(leftRef.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                
+                                    // Compare right to X (sets Z if equal)
+                                    code[codeIndex++] = 0xEC;
+                                    addLocation(rightRef.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                
+                                    // Branch if not equal — skip block and loop
+                                    const branchToEndIndex = codeIndex;
+                                    code[codeIndex++] = 0xD0;
+                                    const placeholderIndex = codeIndex++;
+                                    
+                                    const blockStart = codeIndex;
+                                    visit(block);
+                                
+                                    // Unconditional branch back to top
+                                    code[codeIndex++] = 0xD0;
+                                    const backOffset = (256 + loopStart - (codeIndex + 1)) % 256;
+                                    code[codeIndex++] = backOffset;
+                                
+                                    // Fill in skip offset
+                                    const blockEnd = codeIndex;
+                                    const skipOffset = blockEnd - (branchToEndIndex + 2);
+                                    code[placeholderIndex] = skipOffset;
+                                }
+                                
+                            }
+                            else if (boolExpr.name === "[NotEquals]") {
+                            }
+                        }
+                        else if(left.type == "string"){
+                            if((/^".*"$/.test(left.name)) || (/^".*"$/.test(right.name))){
+                                //do nothing, always false, we cannot check structure of string literals
+                                break;
+                            }
+                            else{// both are string variables
+                                if(leftRef.name == rightRef.aliasOf || rightRef.name == leftRef.aliasOf){
+                                    if(boolExpr.name === "[Equals]"){
+                                        visit(block);
+                                    }
+                                }
+                                if(leftRef.name != rightRef.aliasOf && rightRef.name != leftRef.aliasOf){
+                                    if(boolExpr.name === "[NotEquals]"){
+                                        visit(block);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                break;
+            }
+            
             default:
                 for (const child of node.children) visit(child);
                 break;
