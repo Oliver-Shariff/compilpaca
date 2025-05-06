@@ -2,6 +2,7 @@
 ---------------------------------------------------------------------------------------------------------
 May 5th: 
 
+if values are equal z flag = 1
 	-Issue, string values are overwritted to their final value since they are written into the heap so code like
 	{    string c
 		c = "hello"

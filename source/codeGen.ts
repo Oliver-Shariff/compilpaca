@@ -65,7 +65,7 @@ function generateBaseExpression(node: TreeNode): void {
             */
         }
         else if (right.name === "[Addition]") {
-            generaterRecurseExpression(right,tempAdd);
+            generaterRecurseExpression(right, tempAdd);
         }
     } else if (/^[a-z]$/.test(node.name)) {
         const ref = findScopeFromAST(node.name, node);
@@ -109,7 +109,7 @@ function generaterRecurseExpression(node: TreeNode, tempAdd: Static): void {
             */
         }
         else if (right.name === "[Addition]") {
-            generaterRecurseExpression(right,tempAdd);
+            generaterRecurseExpression(right, tempAdd);
         }
     } else if (/^[a-z]$/.test(node.name)) {
         const ref = findScopeFromAST(node.name, node);
@@ -120,6 +120,7 @@ function generaterRecurseExpression(node: TreeNode, tempAdd: Static): void {
         code[codeIndex++] = 0x00;
     }
 }
+
 
 function findScopeFromAST(varName: string, node: TreeNode): Static | undefined {
     let current: TreeNode | null = node;
@@ -135,9 +136,6 @@ function findScopeFromAST(varName: string, node: TreeNode): Static | undefined {
     return undefined;
 }
 export function generateCode(ast: Tree): number[] {
-
-
-
 
     function visit(node: TreeNode): void {
         //        console.log(`switch on ${node.name}`);
@@ -183,19 +181,34 @@ export function generateCode(ast: Tree): number[] {
                     target.stringValue = raw;
 
                 }
-                else if (idNode.type == "boolean") {
+                else if (idNode.type == "boolean" && !(/^[a-z]$/.test(valueNode.name))) {
+                    if (valueNode.name === "[NotEquals]") {
+
+                    }
+                    code[codeIndex++] = 0xA9;
+                    if (/(true)/.test(valueNode.name)) {
+                        code[codeIndex++] = 0x01;
+                    }
+                    else {
+                        code[codeIndex++] = 0x00;
+                    }
+                    code[codeIndex++] = 0x8D;
+                    addLocation(target.name, codeIndex);
+                    code[codeIndex++] = 0x00;
+                    code[codeIndex++] = 0x00;
+
 
                 }
                 else if (/^\d+$/.test(valueNode.name)) { //single digit no addition
                     code[codeIndex++] = 0xA9;
                     code[codeIndex++] = parseInt(valueNode.name);
                     code[codeIndex++] = 0x8D;
-                    addLocation(target.name,codeIndex);
+                    addLocation(target.name, codeIndex);
                     code[codeIndex++] = 0x00;
                     code[codeIndex++] = 0x00;
                 }
-                else if(idNode.type == "string"){
-                    const refString = findScopeFromAST(valueNode.name,node)
+                else if (idNode.type == "string") {
+                    const refString = findScopeFromAST(valueNode.name, node)
                     target.stringValue = refString.stringValue;
 
                 }
@@ -207,7 +220,7 @@ export function generateCode(ast: Tree): number[] {
                     code[codeIndex++] = 0x00;
                     /*                   
                      */
-                    
+
                 }
 
                 break;
@@ -267,10 +280,73 @@ export function generateCode(ast: Tree): number[] {
 
                 break;
             }
+            case "[IfStatement]": {
+                //boolExpr left
+                //boolval
+                //OR
+                //Equals | NotEquals
+                //block right
+                let boolExpr = node.children[0];
+                let block = node.children[1];
+
+                if (/(true)/.test(boolExpr.name)) {
+                    visit(block);
+                }
+                else if (/(false)/.test(boolExpr.name)) {
+                    //do nothing - skip block 
+                }
+                else if (boolExpr.name === "[NotEquals]" || boolExpr.name === "[Equals]") {
+                    let left = boolExpr.children[0];
+                    let right = boolExpr.children[1];
+                    if (left.name === "[NotEquals]" || left.name === "[Equals]") {
+                        visit(left);
+                    }
+                    if (right.name === "[NotEquals]" || right.name === "[Equals]") {
+                        visit(right);
+                    }
+                    else if (!(/^".*"$/.test(left.name)) && !(/^".*"$/.test(right.name))) { //no string literal
+                        if (left.type != "string") { //don't have to check right due to type checking
+                            code[codeIndex++] = 0xAE;
+                            const leftRef = findScopeFromAST(left.name, node);
+                            if (!leftRef) throw new Error(`Undeclared variable '${left.name}'`);
+                            addLocation(leftRef.name, codeIndex);
+                            code[codeIndex++] = 0x00;
+                            code[codeIndex++] = 0x00;
+                            code[codeIndex++] = 0xEC;
+                            const rightRef = findScopeFromAST(right.name, node);
+                            if (!rightRef) throw new Error(`Undeclared variable '${right.name}'`);
+                            addLocation(rightRef.name, codeIndex);
+                            code[codeIndex++] = 0x00;
+                            code[codeIndex++] = 0x00;
+                            //now Z flag is set
+
+                            // Reserve slot for D0 jump offset (skip block logic)
+                            const branchIndex = codeIndex;
+                            code[codeIndex++] = 0xD0;
+                            code[codeIndex++] = 0x00; // placeholder for offset
+
+                            const blockStart = codeIndex;
+                            visit(block);
+                            const blockEnd = codeIndex;
+                            const offset = blockEnd - branchIndex - 2;
+
+                            // For [Equals], Z flag = 1 no skip, Z flag = 0 skip
+                            // For [NotEquals], Z flag = 1 skip, Z flag = 0 no skip
+
+                            if (boolExpr.name === "[Equals]") {
+                                code[branchIndex + 1] = offset;
+                            }
+                            else if (boolExpr.name === "[NotEquals]") {
+
+                            }
+
+                        }
 
 
-
-
+                    }
+                }
+                break;
+            }
             default:
                 for (const child of node.children) visit(child);
                 break;

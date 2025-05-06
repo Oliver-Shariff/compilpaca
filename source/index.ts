@@ -18,6 +18,8 @@ function handleLexing() {
     const inputElement = document.getElementById("codeInput") as HTMLTextAreaElement;
     const outputElement = document.getElementById("tokenOutput") as HTMLPreElement;
 
+    outputElement.innerHTML = "";  // Clear previous output
+
     let inputCode = inputElement.value.trim();
     let line = 1, column = 0;
     let outputLog = "";
@@ -31,6 +33,7 @@ function handleLexing() {
             outputLog += `\n<span class="info">INFO Lexer - Lexing program ${programCount}...</span>\n`;
             const lexOutput = formatTokens(tokens, finalInComment, finalInQuote);
             outputLog += lexOutput;  //UNCOMMENT THIS!
+            console.log(tokens);
             // Call the parser here after lexing
             if (lexOutput.includes("ERROR Lexer")) {
                 outputLog += `<span class="fail">Parser - Skipping Parse due to lexing errors.</span>\n`;
@@ -63,6 +66,7 @@ function handleLexing() {
                         if (scopeError) {
                             outputLog += `<span class ="error">ERROR Code Gen - Code Gen Skipped due to scope errors`
                         }
+
                         else {
                             outputLog += `<span class="success">INFO Semantic Analyzer - Decorated AST for Program ${programCount} generated! </span>\n`;
                             outputLog += ast.toDecoratedString() + "\n";
@@ -83,7 +87,6 @@ function handleLexing() {
                                     outputLog += isEndOfRow ? "\n" : " ";
                                 }
                             }
-
                             outputLog += `</pre>\n`;
                         }
 
