@@ -10,6 +10,7 @@ class Static {
     stackTargets: number[] = [] //all the target locations in code array that need to be overwritten
     heapLocation: number = -1; // the actual mem location of the variable
     stringValue?: string;
+    aliasOf?: string;
 
     constructor(id: string, scope: number, size?: number) {
         this.id = id;
@@ -208,9 +209,9 @@ export function generateCode(ast: Tree): number[] {
                     code[codeIndex++] = 0x00;
                 }
                 else if (idNode.type == "string") {
-                    const refString = findScopeFromAST(valueNode.name, node)
-                    target.stringValue = refString.stringValue;
-
+                    const source = findScopeFromAST(valueNode.name, node);
+                    if (!source) throw new Error(`Source '${valueNode.name}' not found`);
+                    target.aliasOf = source.name;
                 }
                 else { //addition or id assignment
                     generateBaseExpression(valueNode);
@@ -218,9 +219,6 @@ export function generateCode(ast: Tree): number[] {
                     addLocation(target.name, codeIndex);
                     code[codeIndex++] = 0x00;
                     code[codeIndex++] = 0x00;
-                    /*                   
-                     */
-
                 }
 
                 break;
@@ -298,22 +296,23 @@ export function generateCode(ast: Tree): number[] {
                 else if (boolExpr.name === "[NotEquals]" || boolExpr.name === "[Equals]") {
                     let left = boolExpr.children[0];
                     let right = boolExpr.children[1];
+                    const leftRef = findScopeFromAST(left.name, node);
+                    const rightRef = findScopeFromAST(right.name, node);
                     if (left.name === "[NotEquals]" || left.name === "[Equals]") {
                         visit(left);
                     }
                     if (right.name === "[NotEquals]" || right.name === "[Equals]") {
                         visit(right);
                     }
-                    else if (!(/^".*"$/.test(left.name)) && !(/^".*"$/.test(right.name))) { //no string literal
+                    else if (!(/^".*"$/.test(left.name)) || !(/^".*"$/.test(right.name))) { //no string literal
+                     console.log("this runs")
                         if (left.type != "string") { //don't have to check right due to type checking
                             code[codeIndex++] = 0xAE;
-                            const leftRef = findScopeFromAST(left.name, node);
                             if (!leftRef) throw new Error(`Undeclared variable '${left.name}'`);
                             addLocation(leftRef.name, codeIndex);
                             code[codeIndex++] = 0x00;
                             code[codeIndex++] = 0x00;
                             code[codeIndex++] = 0xEC;
-                            const rightRef = findScopeFromAST(right.name, node);
                             if (!rightRef) throw new Error(`Undeclared variable '${right.name}'`);
                             addLocation(rightRef.name, codeIndex);
                             code[codeIndex++] = 0x00;
@@ -337,12 +336,26 @@ export function generateCode(ast: Tree): number[] {
                                 code[branchIndex + 1] = offset;
                             }
                             else if (boolExpr.name === "[NotEquals]") {
-
                             }
-
                         }
-
-
+                        else if(left.type == "string"){
+                            console.log("both sides are string")
+                            if((/^".*"$/.test(left.name)) || (/^".*"$/.test(right.name))){
+                                //do nothing, always false, we cannot check structure
+                            }
+                            else{// both are string variables
+                                if(leftRef.name == rightRef.aliasOf || rightRef.name == leftRef.aliasOf){
+                                    if(boolExpr.name === "[Equals]"){
+                                        visit(block);
+                                    }
+                                }
+                                if(leftRef.name != rightRef.aliasOf && rightRef.name != leftRef.aliasOf){
+                                    if(boolExpr.name === "[NotEquals]"){
+                                        visit(block);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 break;
@@ -355,21 +368,33 @@ export function generateCode(ast: Tree): number[] {
     }
     function fillStatic() {
         for (const entry of staticTable) {
-            if (entry.stringValue !== undefined) {
-                entry.heapLocation = codeIndex;
-                for (const char of entry.stringValue) {
-                    code[codeIndex++] = char.charCodeAt(0);
-                }
-                code[codeIndex++] = 0x00; // null terminator
-            } else if (entry.heapLocation === -1) {
-                entry.heapLocation = codeIndex++;
+            // Step 1: Resolve alias
+            if (entry.aliasOf) {
+                const source = staticTable.find(e => e.name === entry.aliasOf);
+                if (!source) throw new Error(`Alias target '${entry.aliasOf}' not found`);
+                entry.heapLocation = source.heapLocation;
             }
-
+    
+            // Step 2: Allocate string if not yet resolved
+            if (entry.heapLocation === -1) {
+                if (entry.stringValue !== undefined) {
+                    entry.heapLocation = codeIndex;
+                    for (const char of entry.stringValue) {
+                        code[codeIndex++] = char.charCodeAt(0);
+                    }
+                    code[codeIndex++] = 0x00;
+                } else {
+                    entry.heapLocation = codeIndex++;
+                }
+            }
+    
+            // Step 3: Back-patch stack targets
             for (const loc of entry.stackTargets) {
                 code[loc] = entry.heapLocation;
             }
         }
     }
+    
 
     if (ast.root) {
         visit(ast.root);
