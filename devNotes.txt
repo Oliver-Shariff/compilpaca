@@ -9,6 +9,8 @@ May 7th
 
 	- [Equals] and [NotEquals] works for while statements
 	- let's see if I can correct if statements using some of this logic
+
+	-I need to add support for printing ints, boolean, and addition
 ---------------------------------------------------------------------------------------------------------
 May 5th: 
 

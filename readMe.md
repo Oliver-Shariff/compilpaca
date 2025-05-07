@@ -12,6 +12,60 @@ To see my thoughts and notes throughout this project you can read my commits, co
 
 ## CODE GEN 
 
+## Chained string aliasing and comparison
+
+    {
+      string a
+      string b
+      string c
+        string d
+      a = "yes"
+      b = a
+        d = b
+      c = "no"
+      if (d == b) {
+        print(" d matches b ")
+      }
+      if (a != c) {
+        print("a is different from c")
+      }
+    }$
+
+
+## if nested in while
+
+    {
+      boolean f
+      int i
+      i = 0
+      f = true
+      if (f == true) {
+        while (i != 3) {
+          print(i)
+          i = 1+i
+        }
+      }
+      print("finished")
+    }$
+
+
+### nested if inside while
+
+    {
+      int x
+      int y
+      x = 1
+      y = 5
+      while (x != y) {
+        if (x == 3) {
+          print("three")
+        }
+        x = 1 = x
+      }
+      print("done")
+    }$
+
+
 ### If statement string comparison
 
     { string a string b

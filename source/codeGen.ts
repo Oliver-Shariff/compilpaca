@@ -285,7 +285,7 @@ export function generateCode(ast: Tree): number[] {
                     code[codeIndex++] = 0xFF; // SYS
                 }
 
-                else if (/^[a-z]$/.test(expr.name)) {
+                else if (/^[a-z]$/.test(expr.name)) { //variable
                     if (expr.type == "string") {
                         const target = findScopeFromAST(expr.name, node);
                         if (!target) throw new Error(`No static for ${expr.name} from scope ${node.scopeId}`);
@@ -311,6 +311,45 @@ export function generateCode(ast: Tree): number[] {
                         code[codeIndex++] = 0xFF; // SYS
 
                     }
+                }
+                else if (/(true|false)/.test(expr.name)) { // boolean literal
+                    const raw = expr.name
+                    const tempName = `_strlit@${codeIndex}`;
+                    const tempStatic = new Static(tempName, 0);
+                    tempStatic.stringValue = raw;
+                    staticTable.push(tempStatic);
+
+                    // Set up for SYS call
+                    code[codeIndex++] = 0xA2; // LDX #$02 (print string)
+                    code[codeIndex++] = 0x02;
+
+                    code[codeIndex++] = 0xA0; // LDY tempStatic
+                    addLocation(tempStatic.name, codeIndex);
+                    code[codeIndex++] = 0x00;
+
+                    code[codeIndex++] = 0xFF; // SYS
+                }
+                else if (/[0-9]/.test(expr.name)) { //int literal
+                    
+                    code[codeIndex++] = 0xA2;
+                    code[codeIndex++] = 0x01;
+                    code[codeIndex++] = 0xA0;
+                    code[codeIndex++] = parseInt(expr.name);
+                    code[codeIndex++] = 0xFF;
+                }
+                else if(expr.name == "[Addition]"){
+                    const tempExpr = `_expr@${codeIndex}`;
+                    const tempStatic = new Static (tempExpr, 0);
+                    staticTable.push(tempStatic);
+                    generateBaseExpression(expr);
+                    code[codeIndex++] = 0xAC;
+                    addLocation(tempStatic.name, codeIndex);
+                    code[codeIndex++] = 0x00;
+                    code[codeIndex++] = 0x00;
+                    code[codeIndex++] = 0xA2;
+                    code[codeIndex++] = 0x01;
+                    code[codeIndex++] = 0xFF;
+                    
                 }
 
                 else {
