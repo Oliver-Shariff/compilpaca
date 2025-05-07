@@ -21,11 +21,24 @@ class Static {
     }
 
 }
+class Jump {
+    id: number;
+    amount: number;
+    codeLocation: number;
+
+    constructor(id: number, codeLocation: number) {
+        this.id = id;
+        this.codeLocation = codeLocation;
+    }
+}
+
 const staticTable: Static[] = []
 const code: number[] = new Array(256).fill(0x00);
 let codeIndex = 0;
 let staticIndex = 0;
 let tempCounter = 0;
+let jumpTableindex = 0;
+const jumpTable: Jump[] = []
 
 
 
@@ -337,19 +350,19 @@ export function generateCode(ast: Tree): number[] {
                             else if (boolExpr.name === "[NotEquals]") {
                             }
                         }
-                        else if(left.type == "string"){
+                        else if (left.type == "string") {
                             console.log("both sides are string")
-                            if((/^".*"$/.test(left.name)) || (/^".*"$/.test(right.name))){
+                            if ((/^".*"$/.test(left.name)) || (/^".*"$/.test(right.name))) {
                                 //do nothing, always false, we cannot check structure
                             }
-                            else{// both are string variables
-                                if(leftRef.name == rightRef.aliasOf || rightRef.name == leftRef.aliasOf){
-                                    if(boolExpr.name === "[Equals]"){
+                            else {// both are string variables
+                                if (leftRef.name == rightRef.aliasOf || rightRef.name == leftRef.aliasOf) {
+                                    if (boolExpr.name === "[Equals]") {
                                         visit(block);
                                     }
                                 }
-                                if(leftRef.name != rightRef.aliasOf && rightRef.name != leftRef.aliasOf){
-                                    if(boolExpr.name === "[NotEquals]"){
+                                if (leftRef.name != rightRef.aliasOf && rightRef.name != leftRef.aliasOf) {
+                                    if (boolExpr.name === "[NotEquals]") {
                                         visit(block);
                                     }
                                 }
@@ -373,7 +386,7 @@ export function generateCode(ast: Tree): number[] {
                     const loopStart = codeIndex;
                     visit(block);
                     code[codeIndex++] = 0xD0;
-                    code[codeIndex++] = 256 - (codeIndex - loopStart); 
+                    code[codeIndex++] = 256 - (codeIndex - loopStart);
                 }
                 else if (/(false)/.test(boolExpr.name)) {
                     //do nothing - skip block 
@@ -391,63 +404,142 @@ export function generateCode(ast: Tree): number[] {
                         visit(right);
                     }
                     else if (!(/^".*"$/.test(left.name)) || !(/^".*"$/.test(right.name))) { //no string literal
+                      
                         if (left.type != "string") { //don't have to check right due to type checking
-                           
+
                             // For [Equals], Z flag = 1 no skip, Z flag = 0 skip
                             // For [NotEquals], Z flag = 1 skip, Z flag = 0 no skip
 
                             if (boolExpr.name === "[Equals]") {
-                                if (boolExpr.name === "[Equals]") {
-                                    const loopStart = codeIndex;
+                                // Load left into X
+                                code[codeIndex++] = 0xAE;
+                                addLocation(leftRef.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+
+                                // Compare right to X (sets Z if equal)
+                                code[codeIndex++] = 0xEC;
+                                addLocation(rightRef.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+
+                                // Branch if not equal — skip block and loop
+                                const branchToEndIndex = codeIndex;
+                                code[codeIndex++] = 0xD0;
+                                const placeholderIndex = codeIndex++;
+
+                                const blockStart = codeIndex;
+                                visit(block);
+
+                                // Unconditional branch back to top
+                                //Manually set z flag here to trigger abs jump
+                                code[codeIndex++] = 0xD0;
+                                const backOffset = (256 + loopStart - (codeIndex + 1)) % 256;
+                                code[codeIndex++] = backOffset;
+
+                                // Fill in skip offset
+                                const blockEnd = codeIndex;
+                                const skipOffset = blockEnd - (branchToEndIndex + 2);
+                                code[placeholderIndex] = skipOffset;
+
+                            }
+
+                            else if (boolExpr.name === "[NotEquals]") {
+
+                                /*
+                                Steps
+                                check condition, load left into x
+                                compare x to right
+                                equal --> break loop | Z flag is set to 1
+                                not equal -->  run loop | Z flag is set to 0
                                 
-                                    // Load left into X
-                                    code[codeIndex++] = 0xAE;
+                                we can only branch on zero
+                                
+                                what if I write the loop block first, with a branch to go after it and check the loop header
+                                not equal --> z flag is 0 --> branch backwards
+                                equal --> z flag  is 1 --> don't branch backwards
+                                
+                                */
+
+                                //code the forces branch after loop block 
+                                const tempZClear = new Static(`_zero${codeIndex}`, 0);
+                                staticTable[staticIndex++] = tempZClear;
+                                code[codeIndex++] = 0xA9;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x8D;
+                                addLocation(tempZClear.name, codeIndex); 
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0xA2;
+                                code[codeIndex++] = 0x01;
+                                code[codeIndex++] = 0xEC;
+                                addLocation(tempZClear.name, codeIndex); 
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0xD0;
+                                const jump1 = new Jump(codeIndex, codeIndex);
+                                jumpTable[jumpTableindex++] = jump1;
+                                code[codeIndex++] = 0x00;
+                                const loopStart = codeIndex;
+
+                                visit(block); // emit code for loop body
+
+                                jump1.amount = codeIndex - jump1.codeLocation -1;
+
+                                // Load left into X
+                                if (leftRef) {
+                                    code[codeIndex++] = 0xAE; // LDX <left>
                                     addLocation(leftRef.name, codeIndex);
                                     code[codeIndex++] = 0x00;
                                     code[codeIndex++] = 0x00;
-                                
-                                    // Compare right to X (sets Z if equal)
-                                    code[codeIndex++] = 0xEC;
+                                } else if (/^\d+$/.test(left.name)) {
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = parseInt(left.name);
+                                }
+
+                                // Compare X to right
+                                if (rightRef) {
+                                    code[codeIndex++] = 0xEC; // CPX <right>
                                     addLocation(rightRef.name, codeIndex);
                                     code[codeIndex++] = 0x00;
                                     code[codeIndex++] = 0x00;
-                                
-                                    // Branch if not equal — skip block and loop
-                                    const branchToEndIndex = codeIndex;
-                                    code[codeIndex++] = 0xD0;
-                                    const placeholderIndex = codeIndex++;
-                                    
-                                    const blockStart = codeIndex;
-                                    visit(block);
-                                
-                                    // Unconditional branch back to top
-                                    code[codeIndex++] = 0xD0;
-                                    const backOffset = (256 + loopStart - (codeIndex + 1)) % 256;
-                                    code[codeIndex++] = backOffset;
-                                
-                                    // Fill in skip offset
-                                    const blockEnd = codeIndex;
-                                    const skipOffset = blockEnd - (branchToEndIndex + 2);
-                                    code[placeholderIndex] = skipOffset;
+                                } else if (/^\d+$/.test(right.name)) {
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = parseInt(right.name);
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
                                 }
-                                
-                            }
-                            else if (boolExpr.name === "[NotEquals]") {
+
+                                //Branch if Not Equal (Z = 0)
+                                const branchBack = codeIndex;
+                                code[codeIndex++] = 0xD0; // BNE
+                                code[codeIndex++] = 256 - (codeIndex + loopStart); // offset to go back to loopStart
                             }
                         }
-                        else if(left.type == "string"){
-                            if((/^".*"$/.test(left.name)) || (/^".*"$/.test(right.name))){
+                      
+                        else if (left.type == "string") {
+                            if ((/^".*"$/.test(left.name)) || (/^".*"$/.test(right.name))) {
                                 //do nothing, always false, we cannot check structure of string literals
                                 break;
                             }
-                            else{// both are string variables
-                                if(leftRef.name == rightRef.aliasOf || rightRef.name == leftRef.aliasOf){
-                                    if(boolExpr.name === "[Equals]"){
+                            else {// both are string variables
+                                if (leftRef.name == rightRef.aliasOf || rightRef.name == leftRef.aliasOf) {
+                                    if (boolExpr.name === "[Equals]") {
                                         visit(block);
                                     }
                                 }
-                                if(leftRef.name != rightRef.aliasOf && rightRef.name != leftRef.aliasOf){
-                                    if(boolExpr.name === "[NotEquals]"){
+                                if (leftRef.name != rightRef.aliasOf && rightRef.name != leftRef.aliasOf) {
+                                    if (boolExpr.name === "[NotEquals]") {
                                         visit(block);
                                     }
                                 }
@@ -459,13 +551,19 @@ export function generateCode(ast: Tree): number[] {
 
                 break;
             }
-            
+
             default:
                 for (const child of node.children) visit(child);
                 break;
 
         }
     }
+    function backpatchJumps() {
+        for (const entry of jumpTable) {
+            code[entry.codeLocation] = entry.amount;
+        }
+    }
+
     function fillStatic() {
         for (const entry of staticTable) {
             // Step 1: Resolve alias
@@ -474,7 +572,7 @@ export function generateCode(ast: Tree): number[] {
                 if (!source) throw new Error(`Alias target '${entry.aliasOf}' not found`);
                 entry.heapLocation = source.heapLocation;
             }
-    
+
             // Step 2: Allocate string if not yet resolved
             if (entry.heapLocation === -1) {
                 if (entry.stringValue !== undefined) {
@@ -487,18 +585,19 @@ export function generateCode(ast: Tree): number[] {
                     entry.heapLocation = codeIndex++;
                 }
             }
-    
+
             // Step 3: Back-patch stack targets
             for (const loc of entry.stackTargets) {
                 code[loc] = entry.heapLocation;
             }
         }
     }
-    
+
 
     if (ast.root) {
         visit(ast.root);
         code[codeIndex++] = 0x00; //BRK
+        backpatchJumps();
         fillStatic();
     }
 
