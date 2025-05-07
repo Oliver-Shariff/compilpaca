@@ -51,6 +51,7 @@ function addLocation(name: string, location: number) {
 }
 
 function generateBaseExpression(node: TreeNode): void {
+    console.log("generateBaseExpression called");
     if (node.name === "[Addition]") {
         //left must be digit
         //right is digit addition, or id
@@ -78,6 +79,19 @@ function generateBaseExpression(node: TreeNode): void {
             /*
             */
         }
+        else if (/^[a-z]$/.test(right.name)) {
+            console.log("right side is var");
+            const ref = findScopeFromAST(right.name, node);
+            if (!ref) throw new Error(`Var '${node.name}' not found`);
+            code[codeIndex++] = 0xAD;
+            addLocation(ref.name, codeIndex);
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x6D;
+            addLocation(tempAdd.name, codeIndex);
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x00;
+        }
         else if (right.name === "[Addition]") {
             generaterRecurseExpression(right, tempAdd);
         }
@@ -88,9 +102,11 @@ function generateBaseExpression(node: TreeNode): void {
         addLocation(ref.name, codeIndex);
         code[codeIndex++] = 0x00;
         code[codeIndex++] = 0x00;
+        
     }
 }
 function generaterRecurseExpression(node: TreeNode, tempAdd: Static): void {
+    console.log("recuse Expr called");
     if (node.name === "[Addition]") {
         //left must be digit
         //right is digit addition, or id
@@ -122,6 +138,19 @@ function generaterRecurseExpression(node: TreeNode, tempAdd: Static): void {
             /*
             */
         }
+        else if (/^[a-z]$/.test(right.name)) {
+            console.log("right side is var");
+            const ref = findScopeFromAST(right.name, node);
+            if (!ref) throw new Error(`Var '${node.name}' not found`);
+            code[codeIndex++] = 0xAD;
+            addLocation(ref.name, codeIndex);
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x6D;
+            addLocation(tempAdd.name, codeIndex);
+            code[codeIndex++] = 0x00;
+            code[codeIndex++] = 0x00;
+        }
         else if (right.name === "[Addition]") {
             generaterRecurseExpression(right, tempAdd);
         }
@@ -132,6 +161,7 @@ function generaterRecurseExpression(node: TreeNode, tempAdd: Static): void {
         addLocation(ref.name, codeIndex);
         code[codeIndex++] = 0x00;
         code[codeIndex++] = 0x00;
+        
     }
 }
 
@@ -601,7 +631,7 @@ export function generateCode(ast: Tree): number[] {
         backpatchJumps();
         fillStatic();
     }
-
+console.log(staticTable)
 
     return code;
 }
