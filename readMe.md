@@ -12,6 +12,13 @@ To see my thoughts and notes throughout this project you can read my commits, co
 
 ## CODE GEN 
 
+## Int expression with variable inside print statement
+
+    {
+        int a a = 1
+        print(3+5 + 1)
+    }$
+
 ## Chained string aliasing and comparison
 
     {
