@@ -52,7 +52,7 @@ function generateBaseExpression(node: TreeNode): void {
     console.log("generateBaseExpression called");
     if (node.name === "[Addition]") {
         //left must be digit
-        //right is digit addition, or id
+        //right is digit, addition, or id
         let left = node.children[0];
         let right = node.children[1];
         code[codeIndex++] = 0xA9;
@@ -342,8 +342,12 @@ export function generateCode(ast: Tree): number[] {
                     const tempStatic = new Static (tempExpr, 0);
                     staticTable.push(tempStatic);
                     generateBaseExpression(expr);
+                    code[codeIndex++] = 0x8D;
+                    addLocation(tempStatic.name,codeIndex);
+                    code[codeIndex++] = 0x00;
+                    code[codeIndex++] = 0x00;
                     code[codeIndex++] = 0xAC;
-                    addLocation(tempStatic.name, codeIndex);
+                    addLocation(tempStatic.name,codeIndex);
                     code[codeIndex++] = 0x00;
                     code[codeIndex++] = 0x00;
                     code[codeIndex++] = 0xA2;
