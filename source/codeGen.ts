@@ -102,7 +102,7 @@ function generateBaseExpression(node: TreeNode): void {
         addLocation(ref.name, codeIndex);
         code[codeIndex++] = 0x00;
         code[codeIndex++] = 0x00;
-        
+
     }
 }
 function generaterRecurseExpression(node: TreeNode, tempAdd: Static): void {
@@ -161,7 +161,7 @@ function generaterRecurseExpression(node: TreeNode, tempAdd: Static): void {
         addLocation(ref.name, codeIndex);
         code[codeIndex++] = 0x00;
         code[codeIndex++] = 0x00;
-        
+
     }
 }
 
@@ -434,90 +434,26 @@ export function generateCode(ast: Tree): number[] {
                         visit(right);
                     }
                     else if (!(/^".*"$/.test(left.name)) || !(/^".*"$/.test(right.name))) { //no string literal
-                      
+
                         if (left.type != "string") { //don't have to check right due to type checking
 
                             // For [Equals], Z flag = 1 no skip, Z flag = 0 skip
                             // For [NotEquals], Z flag = 1 skip, Z flag = 0 no skip
 
                             if (boolExpr.name === "[Equals]") {
-                                // Load left into X
-                                code[codeIndex++] = 0xAE;
-                                addLocation(leftRef.name, codeIndex);
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0x00;
-
-                                // Compare right to X (sets Z if equal)
-                                code[codeIndex++] = 0xEC;
-                                addLocation(rightRef.name, codeIndex);
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0x00;
-
-                                // Branch if not equal — skip block and loop
-                                const branchToEndIndex = codeIndex;
-                                code[codeIndex++] = 0xD0;
-                                const placeholderIndex = codeIndex++;
-
-                                const blockStart = codeIndex;
-                                visit(block);
-
-                                // Unconditional branch back to top
-                                //Manually set z flag here to trigger abs jump
-                                code[codeIndex++] = 0xD0;
-                                const backOffset = (256 + loopStart - (codeIndex + 1)) % 256;
-                                code[codeIndex++] = backOffset;
-
-                                // Fill in skip offset
-                                const blockEnd = codeIndex;
-                                const skipOffset = blockEnd - (branchToEndIndex + 2);
-                                code[placeholderIndex] = skipOffset;
-
-                            }
-
-                            else if (boolExpr.name === "[NotEquals]") {
-
                                 /*
                                 Steps
-                                check condition, load left into x
-                                compare x to right
-                                equal --> break loop | Z flag is set to 1
-                                not equal -->  run loop | Z flag is set to 0
-                                
-                                we can only branch on zero
-                                
-                                what if I write the loop block first, with a branch to go after it and check the loop header
-                                not equal --> z flag is 0 --> branch backwards
-                                equal --> z flag  is 1 --> don't branch backwards
-                                
+                                while(a == b){}
+                                load a into x
+                                compare to b
+                                if a == b z = 1 no branch
+                                when z = 0 branch over block AND uncondtional jump
+                                loop start
+                                visit block
+                                unconditional jump back up to compare logic
                                 */
-
-                                //code that forces branch after loop block 
-                                const tempZClear = new Static(`_zero${codeIndex}`, 0);
-                                staticTable[staticIndex++] = tempZClear;
-                                code[codeIndex++] = 0xA9;
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0x8D;
-                                addLocation(tempZClear.name, codeIndex); 
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0xA2;
-                                code[codeIndex++] = 0x01;
-                                code[codeIndex++] = 0xEC;
-                                addLocation(tempZClear.name, codeIndex); 
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0xD0;
-                                const jump1 = new Jump(codeIndex, codeIndex);
-                                jumpTable[jumpTableindex++] = jump1;
-                                code[codeIndex++] = 0x00;
-                                const loopStart = codeIndex;
-
-                                visit(block); // emit code for loop body
-                                console.log(`right name: ${right.name}`)
-
-                                jump1.amount = codeIndex - jump1.codeLocation -1;
-
                                 // Load left into X
+                                const compare = codeIndex;
                                 if (leftRef) {
                                     code[codeIndex++] = 0xAE; // LDX <left>
                                     addLocation(leftRef.name, codeIndex);
@@ -527,11 +463,11 @@ export function generateCode(ast: Tree): number[] {
                                     code[codeIndex++] = 0xA2; // LDX #literal
                                     code[codeIndex++] = parseInt(left.name);
                                 }
-                                else if(/(true)/.test(left.name)){ //boolean literal
+                                else if (/(true)/.test(left.name)) { //boolean literal
                                     code[codeIndex++] = 0xA2; // LDX #literal
                                     code[codeIndex++] = 0x01; // LDX #literal
                                 }
-                                else if(/(false)/.test(left.name)){ //boolean literal
+                                else if (/(false)/.test(left.name)) { //boolean literal
                                     code[codeIndex++] = 0xA2; // LDX #literal
                                     code[codeIndex++] = 0x00; // LDX #literal
                                 }
@@ -558,7 +494,7 @@ export function generateCode(ast: Tree): number[] {
                                     code[codeIndex++] = 0x00;
                                     code[codeIndex++] = 0x00;
                                 }
-                                else if(/(true)/.test(right.name)){ //boolean literal
+                                else if (/(true)/.test(right.name)) { //boolean literal
                                     const temp = new Static(`_temp${codeIndex}`, node.scopeId);
                                     staticTable.push(temp);
 
@@ -574,7 +510,157 @@ export function generateCode(ast: Tree): number[] {
                                     code[codeIndex++] = 0x00;
                                     code[codeIndex++] = 0x00;
                                 }
-                                else if(/(false)/.test(right.name)){ //boolean literal
+                                else if (/(false)/.test(right.name)) { //boolean literal
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = 0x00
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                }
+                                // a == b z = 1 no jump
+                                code[codeIndex++] = 0xD0; // BNE
+                                // here we need to jump over the block AND unconditional jump
+                                const jump1 = new Jump(codeIndex,codeIndex);
+                                jumpTable[jumpTableindex++] = jump1;
+                                code[codeIndex++] = 0x00;
+                                
+
+                                visit(block);
+
+                                //uncondtional jump
+                                const tempZClear = new Static(`_zero${codeIndex}`, 0);
+                                staticTable[staticIndex++] = tempZClear;
+                                code[codeIndex++] = 0xA9;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x8D;
+                                addLocation(tempZClear.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0xA2;
+                                code[codeIndex++] = 0x01;
+                                code[codeIndex++] = 0xEC;
+                                addLocation(tempZClear.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                //z = 0
+                                code[codeIndex++] = 0xD0;
+                                const offset = (256 + compare - (codeIndex + 1)) % 256;
+                                code[codeIndex++] = offset;
+
+                                jump1.amount = codeIndex - jump1.codeLocation - 1; 
+
+                            }
+
+                            else if (boolExpr.name === "[NotEquals]") {
+
+                                /*
+                                Steps
+                                check condition, load left into x
+                                compare x to right
+                                equal --> break loop | Z flag is set to 1
+                                not equal -->  run loop | Z flag is set to 0
+                                
+                                we can only branch on zero
+                                
+                                what if I write the loop block first, with a branch to go after it and check the loop header
+                                not equal --> z flag is 0 --> branch backwards
+                                equal --> z flag  is 1 --> don't branch backwards
+                                
+                                */
+
+                                //code that forces branch after loop block 
+                                const tempZClear = new Static(`_zero${codeIndex}`, 0);
+                                staticTable[staticIndex++] = tempZClear;
+                                code[codeIndex++] = 0xA9;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x8D;
+                                addLocation(tempZClear.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0xA2;
+                                code[codeIndex++] = 0x01;
+                                code[codeIndex++] = 0xEC;
+                                addLocation(tempZClear.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0xD0;
+                                const jump1 = new Jump(codeIndex, codeIndex);
+                                jumpTable[jumpTableindex++] = jump1;
+                                code[codeIndex++] = 0x00;
+                                const loopStart = codeIndex;
+
+                                visit(block); // emit code for loop body
+
+
+                                jump1.amount = codeIndex - jump1.codeLocation - 1;
+
+                                // Load left into X
+                                if (leftRef) {
+                                    code[codeIndex++] = 0xAE; // LDX <left>
+                                    addLocation(leftRef.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                } else if (/^\d+$/.test(left.name)) {
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = parseInt(left.name);
+                                }
+                                else if (/(true)/.test(left.name)) { //boolean literal
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = 0x01; // LDX #literal
+                                }
+                                else if (/(false)/.test(left.name)) { //boolean literal
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = 0x00; // LDX #literal
+                                }
+
+                                // Compare X to right
+                                if (rightRef) {
+                                    code[codeIndex++] = 0xEC; // CPX <right>
+                                    addLocation(rightRef.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                } else if (/^\d+$/.test(right.name)) {
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = parseInt(right.name);
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                }
+                                else if (/(true)/.test(right.name)) { //boolean literal
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = 0x01
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                }
+                                else if (/(false)/.test(right.name)) { //boolean literal
                                     const temp = new Static(`_temp${codeIndex}`, node.scopeId);
                                     staticTable.push(temp);
 
@@ -598,7 +684,7 @@ export function generateCode(ast: Tree): number[] {
                                 code[codeIndex++] = offset;
                             }
                         }
-                      
+
                         else if (left.type == "string") {
                             if ((/^".*"$/.test(left.name)) || (/^".*"$/.test(right.name))) {
                                 //do nothing, always false, we cannot check structure of string literals
@@ -672,7 +758,7 @@ export function generateCode(ast: Tree): number[] {
         backpatchJumps();
         fillStatic();
     }
-console.log(staticTable)
+    console.log(staticTable)
 
     return code;
 }
