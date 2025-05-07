@@ -491,7 +491,7 @@ export function generateCode(ast: Tree): number[] {
                                 
                                 */
 
-                                //code the forces branch after loop block 
+                                //code that forces branch after loop block 
                                 const tempZClear = new Static(`_zero${codeIndex}`, 0);
                                 staticTable[staticIndex++] = tempZClear;
                                 code[codeIndex++] = 0xA9;
@@ -527,6 +527,14 @@ export function generateCode(ast: Tree): number[] {
                                     code[codeIndex++] = 0xA2; // LDX #literal
                                     code[codeIndex++] = parseInt(left.name);
                                 }
+                                else if(/(true)/.test(left.name)){ //boolean literal
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = 0x01; // LDX #literal
+                                }
+                                else if(/(false)/.test(left.name)){ //boolean literal
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = 0x00; // LDX #literal
+                                }
 
                                 // Compare X to right
                                 if (rightRef) {
@@ -540,6 +548,38 @@ export function generateCode(ast: Tree): number[] {
 
                                     code[codeIndex++] = 0xA9; // LDA #right literal
                                     code[codeIndex++] = parseInt(right.name);
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                }
+                                else if(/(true)/.test(right.name)){ //boolean literal
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = 0x01
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                }
+                                else if(/(false)/.test(right.name)){ //boolean literal
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = 0x00
                                     code[codeIndex++] = 0x8D; // STA temp
                                     addLocation(temp.name, codeIndex);
                                     code[codeIndex++] = 0x00;

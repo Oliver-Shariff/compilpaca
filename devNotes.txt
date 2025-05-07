@@ -5,6 +5,7 @@ May 7th
 	-NotEquals loop works after implementing jump table
 	-Let's extend the logic here to while Equals and the if statement
 	-First we'll test the current while notEquals with different types of variables
+	-ok I just need to add support for booleans
 ---------------------------------------------------------------------------------------------------------
 May 5th: 
 
