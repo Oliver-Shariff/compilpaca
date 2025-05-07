@@ -22,12 +22,10 @@ class Static {
 
 }
 class Jump {
-    id: number;
     amount: number;
     codeLocation: number;
 
-    constructor(id: number, codeLocation: number) {
-        this.id = id;
+    constructor(codeLocation: number) {
         this.codeLocation = codeLocation;
     }
 }
@@ -349,35 +347,165 @@ export function generateCode(ast: Tree): number[] {
                     }
                     else if (!(/^".*"$/.test(left.name)) || !(/^".*"$/.test(right.name))) { //no string literal
                         if (left.type != "string") { //don't have to check right due to type checking
-                            code[codeIndex++] = 0xAE;
-                            if (!leftRef) throw new Error(`Undeclared variable '${left.name}'`);
-                            addLocation(leftRef.name, codeIndex);
-                            code[codeIndex++] = 0x00;
-                            code[codeIndex++] = 0x00;
-                            code[codeIndex++] = 0xEC;
-                            if (!rightRef) throw new Error(`Undeclared variable '${right.name}'`);
-                            addLocation(rightRef.name, codeIndex);
-                            code[codeIndex++] = 0x00;
-                            code[codeIndex++] = 0x00;
-                            //now Z flag is set
-
-                            // Reserve slot for D0 jump offset (skip block logic)
-                            const branchIndex = codeIndex;
-                            code[codeIndex++] = 0xD0;
-                            code[codeIndex++] = 0x00; // placeholder for offset
-
-                            const blockStart = codeIndex;
-                            visit(block);
-                            const blockEnd = codeIndex;
-                            const offset = blockEnd - branchIndex - 2;
-
-                            // For [Equals], Z flag = 1 no skip, Z flag = 0 skip
-                            // For [NotEquals], Z flag = 1 skip, Z flag = 0 no skip
 
                             if (boolExpr.name === "[Equals]") {
+                                code[codeIndex++] = 0xAE;
+                                if (!leftRef) throw new Error(`Undeclared variable '${left.name}'`);
+                                addLocation(leftRef.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0xEC;
+                                if (!rightRef) throw new Error(`Undeclared variable '${right.name}'`);
+                                addLocation(rightRef.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                //now Z flag is set
+
+                                // Reserve slot for D0 jump offset (skip block logic)
+                                const branchIndex = codeIndex;
+                                code[codeIndex++] = 0xD0;
+                                code[codeIndex++] = 0x00; // placeholder for offset
+
+                                const blockStart = codeIndex;
+                                visit(block);
+                                const blockEnd = codeIndex;
+                                const offset = blockEnd - branchIndex - 2;
+
+                                // For [Equals], Z flag = 1 no skip, Z flag = 0 skip
+                                // For [NotEquals], Z flag = 1 skip, Z flag = 0 no skip
+
                                 code[branchIndex + 1] = offset;
                             }
                             else if (boolExpr.name === "[NotEquals]") {
+                                console.log(`this code runs`)
+
+                                /**
+                                 * There has got to be an easier way to do this but I can't figure it out so here we go
+                                 * Steps
+                                 * unconditional jump after to compare logic
+                                 * visit block
+                                 * unconditional jump to after compare logic
+                                 * compare logic
+                                 * if != branch into block
+                                 * if == don't branch into block, just exit
+                                */
+
+                                //uncondtional jump
+                                const tempZClear = new Static(`_zero${codeIndex}`, 0);
+                                staticTable[staticIndex++] = tempZClear;
+                                code[codeIndex++] = 0xA9;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x8D;
+                                addLocation(tempZClear.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0xA2;
+                                code[codeIndex++] = 0x01;
+                                code[codeIndex++] = 0xEC;
+                                addLocation(tempZClear.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                //z = 0
+                                code[codeIndex++] = 0xD0;
+                                const jump1 = new Jump(codeIndex)
+                                jumpTable[jumpTableindex++] = jump1
+                                code[codeIndex++] = 0x00;
+                                //jump amount here to compare logic
+
+                                const blockEnter = codeIndex;
+                                visit(block);
+
+                                //uncondtional jump
+                                code[codeIndex++] = 0xA9;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x8D;
+                                addLocation(tempZClear.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0xA2;
+                                code[codeIndex++] = 0x01;
+                                code[codeIndex++] = 0xEC;
+                                addLocation(tempZClear.name, codeIndex);
+                                code[codeIndex++] = 0x00;
+                                code[codeIndex++] = 0x00;
+                                //z = 0
+                                code[codeIndex++] = 0xD0;
+                                //jump amount here to AFTER compare logic
+                                const jump2 = new Jump(codeIndex);
+                                jumpTable[jumpTableindex++] = jump2;
+                                code[codeIndex++] = 0x00;
+
+                                //compare logic
+                                jump1.amount = codeIndex - jump1.codeLocation - 1;
+
+                                if (leftRef) {
+                                    code[codeIndex++] = 0xAE; // LDX <left>
+                                    addLocation(leftRef.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                } else if (/^\d+$/.test(left.name)) {
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = parseInt(left.name);
+                                }
+                                else if (/(true)/.test(left.name)) { //boolean literal
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = 0x01; // LDX #literal
+                                }
+                                else if (/(false)/.test(left.name)) { //boolean literal
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = 0x00; // LDX #literal
+                                }
+
+                                // Compare X to right
+                                if (rightRef) {
+                                    code[codeIndex++] = 0xEC; // CPX <right>
+                                    addLocation(rightRef.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                } else if (/^\d+$/.test(right.name)) {
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = parseInt(right.name);
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                }
+                                else if (/(true)/.test(right.name)) { //boolean literal
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = 0x01
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                }
+
+                                //compare logic over
+                                //z flag set based on comparison
+                                code[codeIndex++] = 0xD0
+                                //jump to block start
+                                const offset = (256 + blockEnter - (codeIndex + 1)) % 256;
+                                code[codeIndex++] = offset;
+
+                                //this is where we land after executing block
+                                jump2.amount = codeIndex - jump2.codeLocation -1;
+
+
                             }
                         }
                         else if (left.type == "string") {
@@ -529,10 +657,10 @@ export function generateCode(ast: Tree): number[] {
                                 // a == b z = 1 no jump
                                 code[codeIndex++] = 0xD0; // BNE
                                 // here we need to jump over the block AND unconditional jump
-                                const jump1 = new Jump(codeIndex,codeIndex);
+                                const jump1 = new Jump(codeIndex);
                                 jumpTable[jumpTableindex++] = jump1;
                                 code[codeIndex++] = 0x00;
-                                
+
 
                                 visit(block);
 
@@ -556,7 +684,7 @@ export function generateCode(ast: Tree): number[] {
                                 const offset = (256 + compare - (codeIndex + 1)) % 256;
                                 code[codeIndex++] = offset;
 
-                                jump1.amount = codeIndex - jump1.codeLocation - 1; 
+                                jump1.amount = codeIndex - jump1.codeLocation - 1;
 
                             }
 
@@ -593,7 +721,7 @@ export function generateCode(ast: Tree): number[] {
                                 code[codeIndex++] = 0x00;
                                 code[codeIndex++] = 0x00;
                                 code[codeIndex++] = 0xD0;
-                                const jump1 = new Jump(codeIndex, codeIndex);
+                                const jump1 = new Jump(codeIndex);
                                 jumpTable[jumpTableindex++] = jump1;
                                 code[codeIndex++] = 0x00;
                                 const loopStart = codeIndex;
@@ -718,6 +846,7 @@ export function generateCode(ast: Tree): number[] {
     }
     function backpatchJumps() {
         for (const entry of jumpTable) {
+            console.log(`jump at ${entry.codeLocation} backpatched with ${entry.amount}`)
             code[entry.codeLocation] = entry.amount;
         }
     }
@@ -759,6 +888,7 @@ export function generateCode(ast: Tree): number[] {
         fillStatic();
     }
     console.log(staticTable)
+    console.log(jumpTable)
 
     return code;
 }

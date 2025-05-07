@@ -6,6 +6,9 @@ May 7th
 	-Let's extend the logic here to while Equals and the if statement
 	-First we'll test the current while notEquals with different types of variables
 	-ok I just need to add support for booleans
+
+	- [Equals] and [NotEquals] works for while statements
+	- let's see if I can correct if statements using some of this logic
 ---------------------------------------------------------------------------------------------------------
 May 5th: 
 
