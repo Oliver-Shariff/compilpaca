@@ -349,16 +349,63 @@ export function generateCode(ast: Tree): number[] {
                         if (left.type != "string") { //don't have to check right due to type checking
 
                             if (boolExpr.name === "[Equals]") {
-                                code[codeIndex++] = 0xAE;
-                                if (!leftRef) throw new Error(`Undeclared variable '${left.name}'`);
-                                addLocation(leftRef.name, codeIndex);
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0xEC;
-                                if (!rightRef) throw new Error(`Undeclared variable '${right.name}'`);
-                                addLocation(rightRef.name, codeIndex);
-                                code[codeIndex++] = 0x00;
-                                code[codeIndex++] = 0x00;
+
+                                if (leftRef) {
+                                    code[codeIndex++] = 0xAE; // LDX <left>
+                                    addLocation(leftRef.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                } else if (/^\d+$/.test(left.name)) {
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = parseInt(left.name);
+                                }
+                                else if (/(true)/.test(left.name)) { //boolean literal
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = 0x01; // LDX #literal
+                                }
+                                else if (/(false)/.test(left.name)) { //boolean literal
+                                    code[codeIndex++] = 0xA2; // LDX #literal
+                                    code[codeIndex++] = 0x00; // LDX #literal
+                                }
+
+                                // Compare X to right
+                                if (rightRef) {
+                                    code[codeIndex++] = 0xEC; // CPX <right>
+                                    addLocation(rightRef.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                } else if (/^\d+$/.test(right.name)) {
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = parseInt(right.name);
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                }
+                                else if (/(true)/.test(right.name)) { //boolean literal
+                                    const temp = new Static(`_temp${codeIndex}`, node.scopeId);
+                                    staticTable.push(temp);
+
+                                    code[codeIndex++] = 0xA9; // LDA #right literal
+                                    code[codeIndex++] = 0x01
+                                    code[codeIndex++] = 0x8D; // STA temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+
+                                    code[codeIndex++] = 0xEC; // CPX temp
+                                    addLocation(temp.name, codeIndex);
+                                    code[codeIndex++] = 0x00;
+                                    code[codeIndex++] = 0x00;
+                                }
                                 //now Z flag is set
 
                                 // Reserve slot for D0 jump offset (skip block logic)
@@ -503,7 +550,7 @@ export function generateCode(ast: Tree): number[] {
                                 code[codeIndex++] = offset;
 
                                 //this is where we land after executing block
-                                jump2.amount = codeIndex - jump2.codeLocation -1;
+                                jump2.amount = codeIndex - jump2.codeLocation - 1;
 
 
                             }
