@@ -1,12 +1,10 @@
 import { Tree, TreeNode } from './tree.js';
-import { Scope } from './scopeAnalyzer.js';
 
 
 class Static {
     name: string;
     id: string; //variable name
     scope: number;
-    size: number; //not using length to avoid static.length vs static[].length confusion
     stackTargets: number[] = [] //all the target locations in code array that need to be overwritten
     heapLocation: number = -1; // the actual mem location of the variable
     stringValue?: string;
@@ -15,8 +13,7 @@ class Static {
     constructor(id: string, scope: number, size?: number) {
         this.id = id;
         this.scope = scope;
-        this.size = size;
-        this.name = `${id}@${scope}`; //for clean debug
+        this.name = `${id}@${scope}`;
 
     }
 
