@@ -523,7 +523,8 @@ export function generateCode(ast: Tree): number[] {
                                 //Branch if Not Equal (Z = 0)
                                 const branchBack = codeIndex;
                                 code[codeIndex++] = 0xD0; // BNE
-                                code[codeIndex++] = 256 - (codeIndex + loopStart); // offset to go back to loopStart
+                                const offset = (256 + loopStart - (codeIndex + 1)) % 256;
+                                code[codeIndex++] = offset;
                             }
                         }
                       
