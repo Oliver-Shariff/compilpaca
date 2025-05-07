@@ -1,4 +1,10 @@
+---------------------------------------------------------------------------------------------------------
+May 7th
 
+	-Addition with variables works in base and chained cases
+	-NotEquals loop works after implementing jump table
+	-Let's extend the logic here to while Equals and the if statement
+	-First we'll test the current while notEquals with different types of variables
 ---------------------------------------------------------------------------------------------------------
 May 5th: 
 

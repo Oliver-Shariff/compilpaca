@@ -513,6 +513,7 @@ export function generateCode(ast: Tree): number[] {
                                 const loopStart = codeIndex;
 
                                 visit(block); // emit code for loop body
+                                console.log(`right name: ${right.name}`)
 
                                 jump1.amount = codeIndex - jump1.codeLocation -1;
 
