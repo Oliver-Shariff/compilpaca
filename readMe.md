@@ -1,7 +1,8 @@
 
 ## Compilpaca
 
-### Welcome to Compilpaca- a compiler for Alan++ written by Oliver Shariff
+### Welcome to Compilpaca 
+### ...a compiler for Alan++ written by Oliver Shariff
 
 #### This program performs lexical analysis, parsing, semantic analysis and code gen for programs written in Alan++. Consult language_grammar.pdf for an overview of the language. Test cases for each stage of compilation are written below.
 
